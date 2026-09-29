@@ -25,6 +25,7 @@
       "cannot_connect": "Can't reach Tellybox at this address.",
       "invalid_auth": "Tellybox refused this token.",
       "not_tellybox": "This address doesn't look like a Tellybox (version with the admin API needed).",
+      "invalid_url": "Enter an address that starts with http:// or https://.",
       "unknown": "Unexpected error."
     },
     "abort": {
@@ -134,6 +135,18 @@
     },
     "control_disabled": {
       "message": "Parent controls are turned off in the Tellybox options."
+    },
+    "auth": {
+      "message": "Tellybox refused the token; Home Assistant will ask for a new one."
+    },
+    "invalid_target": {
+      "message": "{device} isn't a Tellybox or a kid's device."
+    },
+    "mixed_targets": {
+      "message": "Choose either the Tellybox device (everyone) or kids' devices, not both."
+    },
+    "multiple_servers": {
+      "message": "Choose devices of one Tellybox at a time."
     },
     "no_kids": {
       "message": "No kids to play for: choose a kid's device, or start something in Tellybox first."
