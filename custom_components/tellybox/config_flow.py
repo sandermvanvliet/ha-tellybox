@@ -65,6 +65,7 @@ class TellyboxConfigFlow(ConfigFlow, domain=DOMAIN):
                 vol.Required(CONF_URL, default=user_input.get(CONF_URL, vol.UNDEFINED)): str,
                 vol.Required(CONF_TOKEN): str,
             }),
+            description_placeholders={"example_url": "https://tellybox.example"},
             errors=errors,
         )
 
