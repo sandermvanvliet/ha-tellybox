@@ -1,0 +1,127 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Tellybox",
+        "description": "Create a token on Tellybox's Integrations page (Admin → Integrations). Choose \"Read and control\" to use the override buttons, or \"Read only\" for a status display.",
+        "data": {
+          "url": "Tellybox URL",
+          "token": "API token"
+        },
+        "data_description": {
+          "url": "The address you open Tellybox on, for example https://tellybox.example",
+          "token": "Starts with tbx_. It is shown only once when you create it."
+        }
+      },
+      "reauth_confirm": {
+        "title": "New Tellybox token",
+        "description": "The token for {name} no longer works; it may have been revoked. Create a new one on Tellybox's Integrations page.",
+        "data": {
+          "token": "API token"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Can't reach Tellybox at this address.",
+      "invalid_auth": "Tellybox refused this token.",
+      "not_tellybox": "This address doesn't look like a Tellybox (version with the admin API needed).",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This Tellybox is already set up.",
+      "reauth_successful": "The new token works.",
+      "wrong_instance": "That token belongs to a different Tellybox."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "control": "Parent controls (override buttons and actions)"
+        },
+        "data_description": {
+          "control": "Turn off for a read-only token, such as a status display."
+        }
+      }
+    }
+  },
+  "entity": {
+    "media_player": {
+      "player": { "name": null }
+    },
+    "sensor": {
+      "now_playing_show": { "name": "Now playing show" },
+      "now_playing_episode": { "name": "Now playing episode" },
+      "time_left": { "name": "Time left" },
+      "time_used_today": { "name": "Time used today" },
+      "allowance_today": { "name": "Allowance today" },
+      "session_time": { "name": "Session time" },
+      "downloads_awaiting_approval": { "name": "Downloads awaiting approval" },
+      "download_queue": { "name": "Download queue" },
+      "media_disk_use": { "name": "Media disk use" }
+    },
+    "binary_sensor": {
+      "time_up": { "name": "Time up" },
+      "last_five_minutes": { "name": "Last five minutes" },
+      "watching": { "name": "Watching" },
+      "blocked": { "name": "Blocked today" },
+      "unlimited": { "name": "Unlimited today" },
+      "tv_reachable": { "name": "TV reachable" }
+    },
+    "button": {
+      "add_15_minutes": { "name": "Add 15 minutes" },
+      "add_30_minutes": { "name": "Add 30 minutes" },
+      "unlimited_today": { "name": "Unlimited today" },
+      "block_today": { "name": "Block today" },
+      "clear_overrides": { "name": "Clear today's overrides" },
+      "stop_now": { "name": "Stop now" }
+    }
+  },
+  "exceptions": {
+    "forbidden": { "message": "This Tellybox token is read-only. Create a \"Read and control\" token to use parent controls." },
+    "time_up": { "message": "Tellybox refused: someone in the group is out of time." },
+    "unavailable": { "message": "Tellybox can't reach the TV right now; nothing was changed." },
+    "connection": { "message": "Can't reach Tellybox." },
+    "request": { "message": "Tellybox refused the request: {detail}" },
+    "control_disabled": { "message": "Parent controls are turned off in the Tellybox options." },
+    "no_kids": { "message": "No kids to play for: choose a kid's device, or start something in Tellybox first." }
+  },
+  "services": {
+    "add_time": {
+      "name": "Add time",
+      "description": "Gives extra minutes today. Target the Tellybox device for everyone, or kids' devices.",
+      "fields": {
+        "device_id": { "name": "Tellybox or kids", "description": "The Tellybox device (everyone) or kids' devices." },
+        "minutes": { "name": "Minutes", "description": "1 to 240." }
+      }
+    },
+    "set_unlimited_today": {
+      "name": "Unlimited today",
+      "description": "Lifts the allowance and the session limit for the rest of today.",
+      "fields": { "device_id": { "name": "Tellybox or kids", "description": "The Tellybox device (everyone) or kids' devices." } }
+    },
+    "block_today": {
+      "name": "Block today",
+      "description": "Blocks watching for the rest of today, immediately.",
+      "fields": { "device_id": { "name": "Tellybox or kids", "description": "The Tellybox device (everyone) or kids' devices." } }
+    },
+    "clear_overrides": {
+      "name": "Clear today's overrides",
+      "description": "Clears unlimited and block for today. Extra minutes stay.",
+      "fields": { "device_id": { "name": "Tellybox or kids", "description": "The Tellybox device (everyone) or kids' devices." } }
+    },
+    "stop_now": {
+      "name": "Stop now",
+      "description": "Stops what's playing on the TV, without grace.",
+      "fields": { "device_id": { "name": "Tellybox", "description": "The Tellybox device." } }
+    },
+    "play_episode": {
+      "name": "Play episode",
+      "description": "Plays an episode for kids. Refused when one of them is out of time.",
+      "fields": {
+        "device_id": { "name": "Tellybox or kids", "description": "Kids' devices; the Tellybox device means the kids who watched last." },
+        "episode_id": { "name": "Episode", "description": "The Tellybox episode id." }
+      }
+    }
+  }
+}
