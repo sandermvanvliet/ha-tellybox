@@ -36,6 +36,9 @@ Running log for the Home Assistant integration. The plan is `docs/plan.md`; Tell
   - play from the media player works, and is refused when time is up;
   - revoking the token starts reauth.
 
+## 0.1.1 (2026-09-29)
+- Branding: the HACS and Home Assistant icon and logo now use Tellybox's mark and logo (light and dark); README logo header; social preview.
+
 ## Next
 Phase 2 of the Home Assistant plan, when the owner wants it:
 - typed events on Tellybox's admin stream (F4), with HA bus events and device triggers;
