@@ -28,4 +28,10 @@ Running log for the Home Assistant integration. The plan is `docs/plan.md`; Tell
   - a brand icon for HACS;
   - hassfest fixes (no null names, no URLs in strings).
 - 101 tests. CI: hassfest, HACS validation and the tests.
-- **Next:** tag pytellybox v0.1.0 (needs the owner's PyPI pending publisher), release ha-tellybox v0.1.0, then the owner's checks (`docs/plan.md`).
+- Released v0.1.0 on both repositories (2026-09-29). pytellybox 0.1.0 is on PyPI (trusted publishing set up by the owner).
+- Installed on the owner's Home Assistant through HACS, and the integration is set up (2026-09-29).
+- **Open:** the owner's remaining checks in `docs/plan.md` (4–7):
+  - devices per kid, with time left matching the dashboard;
+  - +15 moves the sun and the history says "via Home Assistant";
+  - playing from the media player, and the refusal when time is up;
+  - revoking the token starts reauth.
