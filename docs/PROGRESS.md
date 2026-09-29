@@ -2,7 +2,7 @@
 
 Running log for the Home Assistant integration. The plan is `docs/plan.md`; Tellybox's own log is its `docs/PROGRESS.md`.
 
-## Phase 1 (v0.1.0), in progress
+## Phase 1 (v0.1.0), done
 - 2026-09-29: plan approved by the owner (two Apache-2.0 repositories, PyPI plus HACS, a device per kid, HA 2026.4 or later).
 - Contract committed in both repositories: pytellybox models, errors, client signatures and CI with the PyPI publish; the integration's manifest, constants, entity base, coordinator contract, all strings and the fake client.
 - Built by three Sonnet subagents from the contract, then merged and reviewed by the controller (2026-09-29).
@@ -30,8 +30,14 @@ Running log for the Home Assistant integration. The plan is `docs/plan.md`; Tell
 - 101 tests. CI: hassfest, HACS validation and the tests.
 - Released v0.1.0 on both repositories (2026-09-29). pytellybox 0.1.0 is on PyPI (trusted publishing set up by the owner).
 - Installed on the owner's Home Assistant through HACS, and the integration is set up (2026-09-29).
-- **Open:** the owner's remaining checks in `docs/plan.md` (4–7):
-  - devices per kid, with time left matching the dashboard;
-  - +15 moves the sun and the history says "via Home Assistant";
-  - playing from the media player, and the refusal when time is up;
+- **Owner checks passed (2026-09-29):**
+  - the Tellybox device and both kid devices appear;
+  - +15 from Home Assistant moves the sun, and history says "via Home Assistant";
+  - play from the media player works, and is refused when time is up;
   - revoking the token starts reauth.
+
+## Next
+Phase 2 of the Home Assistant plan, when the owner wants it:
+- typed events on Tellybox's admin stream (F4), with HA bus events and device triggers;
+- opt-in zeroconf discovery;
+- blueprints (five-minute warning, TV off at time-up, an actionable "add time" notification).
