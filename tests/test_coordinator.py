@@ -20,7 +20,7 @@ from pytellybox import (
 
 from custom_components.tellybox.const import RECONNECT_MAX_S, RECONNECT_MIN_S, UNAVAILABLE_AFTER_S
 
-from .helpers import core, no_platforms, tolerate_null_entity_names  # noqa: F401
+from .helpers import core, no_platforms  # noqa: F401
 
 
 def coordinator(config_entry):

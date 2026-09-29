@@ -8,7 +8,7 @@ from homeassistant.helpers import entity_registry as er
 
 from custom_components.tellybox.const import DOMAIN
 
-from .platform_helpers import entity_id, setup_platform, uid
+from .platform_helpers import entity_id, push_state, setup_platform, uid
 
 
 async def _setup(hass, config_entry, fake_client):
@@ -44,7 +44,7 @@ async def test_updates(hass, config_entry, fake_client):
     )
     fake_client.set_profile(1, blocked=True, can_start=False, reason="blocked", watching=False)
     fake_client.set_profile(2, unlimited=True, remaining_s=None, can_start=True)
-    await coordinator.push()
+    await push_state(hass, fake_client)
     await hass.async_block_till_done()
     assert _on(hass, "time_up") == "on"
     assert _on(hass, "last_five_minutes") == "on"
@@ -71,7 +71,7 @@ async def test_new_profile_adds_entities(hass, config_entry, fake_client):
     fake_client.state_data["profiles"].append(
         {**fake_client.state_data["profiles"][1], "id": 3, "name": "Emma", "watching": True}
     )
-    await coordinator.push()
+    await push_state(hass, fake_client)
     await hass.async_block_till_done()
     assert _on(hass, "watching", 3) == "on"
     for key in ("watching", "time_up", "last_five_minutes", "blocked", "unlimited"):

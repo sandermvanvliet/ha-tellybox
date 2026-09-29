@@ -9,7 +9,7 @@ from pytellybox import TellyboxAuthError, TellyboxConnectionError
 from custom_components.tellybox.const import CONF_CONTROL, profile_device_identifier
 
 from .conftest import INSTANCE_ID
-from .helpers import add_devices, core, no_platforms, tolerate_null_entity_names  # noqa: F401
+from .helpers import add_devices, core, no_platforms  # noqa: F401
 
 
 async def test_setup_and_unload(hass, core, config_entry):

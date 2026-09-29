@@ -12,19 +12,6 @@ from custom_components.tellybox.const import DOMAIN, main_device_identifier, pro
 from .conftest import INSTANCE_ID
 
 
-@pytest.fixture(autouse=True)
-def tolerate_null_entity_names():
-    """strings.json has `"name": null` (the media player is named after the device). HA's translation cache
-    can't compare that value with a cached copy when it reloads an evicted integration (a test-harness path,
-    every module after the first), so skip that comparison in tests."""
-    with patch(
-        "homeassistant.helpers.translation._TranslationCache._validate_placeholders",
-        side_effect=lambda self, language, updated, cached=None: updated,
-        autospec=True,
-    ):
-        yield
-
-
 @pytest.fixture
 def no_platforms():
     with patch("custom_components.tellybox.PLATFORMS", []):

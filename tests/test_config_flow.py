@@ -10,7 +10,7 @@ from pytellybox import TellyboxAuthError, TellyboxConnectionError, TellyboxError
 from custom_components.tellybox.const import CONF_CONTROL, CONF_TOKEN, CONF_URL, DOMAIN
 
 from .conftest import INSTANCE_ID, TOKEN, URL
-from .helpers import core, no_platforms, tolerate_null_entity_names  # noqa: F401
+from .helpers import core, no_platforms  # noqa: F401
 
 
 async def _start(hass, user_input):

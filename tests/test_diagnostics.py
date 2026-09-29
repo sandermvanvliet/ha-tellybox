@@ -8,7 +8,7 @@ from homeassistant.components.diagnostics import REDACTED
 from pytest_homeassistant_custom_component.components.diagnostics import get_diagnostics_for_config_entry
 
 from .conftest import INSTANCE_ID, TOKEN, URL
-from .helpers import core, no_platforms, tolerate_null_entity_names  # noqa: F401
+from .helpers import core, no_platforms  # noqa: F401
 
 
 async def test_diagnostics(hass, hass_client, core, config_entry):

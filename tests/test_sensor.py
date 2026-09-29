@@ -11,7 +11,7 @@ from homeassistant.helpers import entity_registry as er
 from custom_components.tellybox.const import DOMAIN, main_device_identifier, profile_device_identifier
 
 from .conftest import INSTANCE_ID
-from .platform_helpers import entity_id, setup_platform, uid
+from .platform_helpers import entity_id, push_state, setup_platform, uid
 
 
 async def _setup(hass, config_entry, fake_client):
@@ -76,7 +76,7 @@ async def test_unlimited_and_idle_are_unknown(hass, config_entry, fake_client):
     coordinator = await _setup(hass, config_entry, fake_client)
     fake_client.set_profile(1, unlimited=True, remaining_s=None)
     fake_client.set_state(now_playing=None, group={**fake_client.state_data["group"], "remaining_s": None})
-    await coordinator.push()
+    await push_state(hass, fake_client)
     await hass.async_block_till_done()
     assert _state(hass, "time_left", 1).state == "unknown"
     assert _state(hass, "time_left").state == "unknown"
@@ -88,7 +88,7 @@ async def test_update_from_pushed_state(hass, config_entry, fake_client):
     coordinator = await _setup(hass, config_entry, fake_client)
     fake_client.set_profile(1, remaining_s=600, used_s=3900)
     fake_client.set_state(jobs={"queued": 0, "running": 0, "failed": 2, "held_ready": 0})
-    await coordinator.push()
+    await push_state(hass, fake_client)
     await hass.async_block_till_done()
     assert float(_state(hass, "time_left", 1).state) == 10
     assert float(_state(hass, "time_used_today", 1).state) == 65
@@ -104,7 +104,7 @@ async def test_new_profile_adds_device_and_entities(hass, config_entry, fake_cli
         {**fake_client.state_data["profiles"][1], "id": 3, "name": "Emma", "remaining_s": 900}
     )
     fake_client.push()
-    await coordinator.push()
+    await push_state(hass, fake_client)
     await hass.async_block_till_done()
     assert float(_state(hass, "time_left", 3).state) == 15
     device = dr.async_get(hass).async_get_device_by_identifier(profile_device_identifier(INSTANCE_ID, 3), config_entry.entry_id)
@@ -125,10 +125,11 @@ async def test_unique_ids_and_device_layout(hass, config_entry, fake_client):
     assert reg.async_get(entity_id(hass, "sensor", "time_left", 1)).has_entity_name
 
 
-async def test_kid_entity_unavailable_when_profile_removed(hass, config_entry, fake_client):
-    coordinator = await _setup(hass, config_entry, fake_client)
+async def test_kid_entities_go_with_a_deleted_profile(hass, config_entry, fake_client):
+    """A kid deleted in Tellybox loses its device and entities (cleanup in __init__.py)."""
+    await _setup(hass, config_entry, fake_client)
+    time_left_2 = entity_id(hass, "sensor", "time_left", 2)
     fake_client.state_data["profiles"] = [p for p in fake_client.state_data["profiles"] if p["id"] != 2]
-    await coordinator.push()
-    await hass.async_block_till_done()
-    assert _state(hass, "time_left", 2).state == "unavailable"
+    await push_state(hass, fake_client)
+    assert er.async_get(hass).async_get(time_left_2) is None
     assert _state(hass, "time_left", 1).state != "unavailable"

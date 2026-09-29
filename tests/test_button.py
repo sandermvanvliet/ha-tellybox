@@ -10,7 +10,7 @@ from homeassistant.helpers import entity_registry as er
 
 from custom_components.tellybox.const import DOMAIN
 
-from .platform_helpers import entity_id, setup_platform, uid
+from .platform_helpers import entity_id, push_state, setup_platform, uid
 
 TELLYBOX_KEYS = ("stop_now", "add_15_minutes", "add_30_minutes", "unlimited_today", "block_today", "clear_overrides")
 KID_KEYS = TELLYBOX_KEYS[1:]
@@ -94,7 +94,7 @@ async def test_kid_button_changes_state_at_once(hass, config_entry, fake_client)
 async def test_new_profile_gets_buttons(hass, config_entry, fake_client):
     coordinator = await _setup(hass, config_entry, fake_client)
     fake_client.state_data["profiles"].append({**fake_client.state_data["profiles"][1], "id": 3, "name": "Emma"})
-    await coordinator.push()
+    await push_state(hass, fake_client)
     await hass.async_block_till_done()
     await _press(hass, "block_today", 3)
     assert ("block", [3]) in fake_client.calls

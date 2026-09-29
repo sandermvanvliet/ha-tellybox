@@ -9,7 +9,7 @@ from pytellybox import TellyboxTimeUpError
 
 from custom_components.tellybox.const import CONF_CONTROL, DOMAIN
 
-from .helpers import add_devices, core, no_platforms, tolerate_null_entity_names  # noqa: F401
+from .helpers import add_devices, core, no_platforms  # noqa: F401
 
 
 async def call(hass, service, **data):

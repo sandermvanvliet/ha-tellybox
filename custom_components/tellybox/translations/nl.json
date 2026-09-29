@@ -1,0 +1,225 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Verbinden met Tellybox",
+        "description": "Maak een token op de pagina Integraties van Tellybox (Beheer → Integraties). Kies \"Lezen en bedienen\" om de knoppen voor extra tijd en blokkeren te gebruiken, of \"Alleen lezen\" voor een statusscherm.",
+        "data": {
+          "url": "Tellybox-adres",
+          "token": "API-token"
+        },
+        "data_description": {
+          "url": "Het adres waarop je Tellybox opent, bijvoorbeeld {example_url}",
+          "token": "Begint met tbx_. Je ziet het maar één keer, als je het maakt."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Nieuw Tellybox-token",
+        "description": "Het token voor {name} werkt niet meer; misschien is het ingetrokken. Maak een nieuw token op de pagina Integraties van Tellybox.",
+        "data": {
+          "token": "API-token"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Tellybox is op dit adres niet bereikbaar.",
+      "invalid_auth": "Tellybox weigert dit token.",
+      "not_tellybox": "Dit adres lijkt geen Tellybox te zijn (een versie met de beheer-API is nodig).",
+      "invalid_url": "Vul een adres in dat begint met http:// of https://.",
+      "unknown": "Onverwachte fout."
+    },
+    "abort": {
+      "already_configured": "Deze Tellybox is al ingesteld.",
+      "reauth_successful": "Het nieuwe token werkt.",
+      "wrong_instance": "Dat token hoort bij een andere Tellybox."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "control": "Ouderknoppen (extra tijd, blokkeren en acties)"
+        },
+        "data_description": {
+          "control": "Zet dit uit bij een token dat alleen mag lezen, zoals voor een statusscherm."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "now_playing_show": {
+        "name": "Speelt nu: serie"
+      },
+      "now_playing_episode": {
+        "name": "Speelt nu: aflevering"
+      },
+      "time_left": {
+        "name": "Tijd over"
+      },
+      "time_used_today": {
+        "name": "Vandaag gekeken"
+      },
+      "allowance_today": {
+        "name": "Kijktijd vandaag"
+      },
+      "session_time": {
+        "name": "Kijksessie"
+      },
+      "downloads_awaiting_approval": {
+        "name": "Downloads wachten op goedkeuring"
+      },
+      "download_queue": {
+        "name": "Downloadwachtrij"
+      },
+      "media_disk_use": {
+        "name": "Schijfruimte media"
+      }
+    },
+    "binary_sensor": {
+      "time_up": {
+        "name": "Tijd is op"
+      },
+      "last_five_minutes": {
+        "name": "Laatste vijf minuten"
+      },
+      "watching": {
+        "name": "Kijkt"
+      },
+      "blocked": {
+        "name": "Vandaag geblokkeerd"
+      },
+      "unlimited": {
+        "name": "Vandaag onbeperkt"
+      },
+      "tv_reachable": {
+        "name": "Tv bereikbaar"
+      }
+    },
+    "button": {
+      "add_15_minutes": {
+        "name": "15 minuten erbij"
+      },
+      "add_30_minutes": {
+        "name": "30 minuten erbij"
+      },
+      "unlimited_today": {
+        "name": "Vandaag onbeperkt"
+      },
+      "block_today": {
+        "name": "Vandaag blokkeren"
+      },
+      "clear_overrides": {
+        "name": "Uitzonderingen van vandaag wissen"
+      },
+      "stop_now": {
+        "name": "Nu stoppen"
+      }
+    }
+  },
+  "exceptions": {
+    "forbidden": {
+      "message": "Dit Tellybox-token mag alleen lezen. Maak een token met \"Lezen en bedienen\" om de ouderknoppen te gebruiken."
+    },
+    "time_up": {
+      "message": "Tellybox weigert: iemand in de groep heeft geen tijd meer."
+    },
+    "unavailable": {
+      "message": "Tellybox kan de tv nu niet bereiken; er is niets veranderd."
+    },
+    "connection": {
+      "message": "Tellybox is niet bereikbaar."
+    },
+    "request": {
+      "message": "Tellybox weigert het verzoek: {detail}"
+    },
+    "control_disabled": {
+      "message": "De ouderknoppen staan uit in de opties van Tellybox."
+    },
+    "auth": {
+      "message": "Tellybox weigert het token; Home Assistant vraagt om een nieuw token."
+    },
+    "invalid_target": {
+      "message": "{device} is geen Tellybox of apparaat van een kind."
+    },
+    "mixed_targets": {
+      "message": "Kies het Tellybox-apparaat (iedereen) of apparaten van kinderen, niet allebei."
+    },
+    "multiple_servers": {
+      "message": "Kies apparaten van één Tellybox tegelijk."
+    },
+    "no_kids": {
+      "message": "Geen kinderen om voor af te spelen: kies het apparaat van een kind, of start eerst iets in Tellybox."
+    }
+  },
+  "services": {
+    "add_time": {
+      "name": "Tijd erbij",
+      "description": "Geeft vandaag extra minuten. Kies het Tellybox-apparaat voor iedereen, of apparaten van kinderen.",
+      "fields": {
+        "device_id": {
+          "name": "Tellybox of kinderen",
+          "description": "Het Tellybox-apparaat (iedereen) of apparaten van kinderen."
+        },
+        "minutes": {
+          "name": "Minuten",
+          "description": "1 tot 240."
+        }
+      }
+    },
+    "set_unlimited_today": {
+      "name": "Vandaag onbeperkt",
+      "description": "Heft de kijktijd en de sessielimiet op voor de rest van vandaag.",
+      "fields": {
+        "device_id": {
+          "name": "Tellybox of kinderen",
+          "description": "Het Tellybox-apparaat (iedereen) of apparaten van kinderen."
+        }
+      }
+    },
+    "block_today": {
+      "name": "Vandaag blokkeren",
+      "description": "Blokkeert kijken voor de rest van vandaag, meteen.",
+      "fields": {
+        "device_id": {
+          "name": "Tellybox of kinderen",
+          "description": "Het Tellybox-apparaat (iedereen) of apparaten van kinderen."
+        }
+      }
+    },
+    "clear_overrides": {
+      "name": "Uitzonderingen van vandaag wissen",
+      "description": "Wist onbeperkt en blokkeren voor vandaag. Extra minuten blijven staan.",
+      "fields": {
+        "device_id": {
+          "name": "Tellybox of kinderen",
+          "description": "Het Tellybox-apparaat (iedereen) of apparaten van kinderen."
+        }
+      }
+    },
+    "stop_now": {
+      "name": "Nu stoppen",
+      "description": "Stopt wat er op de tv speelt, zonder uitlooptijd.",
+      "fields": {
+        "device_id": {
+          "name": "Tellybox",
+          "description": "Het Tellybox-apparaat."
+        }
+      }
+    },
+    "play_episode": {
+      "name": "Aflevering afspelen",
+      "description": "Speelt een aflevering af voor kinderen. Wordt geweigerd als een van hen geen tijd meer heeft.",
+      "fields": {
+        "device_id": {
+          "name": "Tellybox of kinderen",
+          "description": "Apparaten van kinderen; het Tellybox-apparaat betekent de kinderen die het laatst keken."
+        },
+        "episode_id": {
+          "name": "Aflevering",
+          "description": "Het nummer van de aflevering in Tellybox."
+        }
+      }
+    }
+  }
+}

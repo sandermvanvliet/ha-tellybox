@@ -26,7 +26,7 @@ from homeassistant.components.media_player.errors import BrowseError
 from custom_components.tellybox.const import main_device_identifier
 
 from .conftest import INSTANCE_ID, URL
-from .platform_helpers import entity_id, setup_platform
+from .platform_helpers import entity_id, push_state, setup_platform
 
 
 async def _setup(hass, config_entry, fake_client, control=True):
@@ -36,7 +36,7 @@ async def _setup(hass, config_entry, fake_client, control=True):
 
 async def _push(hass, coordinator, fake_client, **changes):
     fake_client.set_state(**changes)
-    await coordinator.push()
+    await push_state(hass, fake_client)
     await hass.async_block_till_done()
 
 

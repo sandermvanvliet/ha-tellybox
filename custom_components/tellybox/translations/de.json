@@ -1,0 +1,225 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Mit Tellybox verbinden",
+        "description": "Erstelle ein Token auf der Seite Integrationen von Tellybox (Verwaltung → Integrationen). Wähle \"Lesen und steuern\", um die Knöpfe für Extrazeit und Sperren zu nutzen, oder \"Nur lesen\" für eine Statusanzeige.",
+        "data": {
+          "url": "Tellybox-Adresse",
+          "token": "API-Token"
+        },
+        "data_description": {
+          "url": "Die Adresse, unter der du Tellybox öffnest, zum Beispiel {example_url}",
+          "token": "Beginnt mit tbx_. Es wird nur einmal angezeigt, wenn du es erstellst."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Neues Tellybox-Token",
+        "description": "Das Token für {name} funktioniert nicht mehr; vielleicht wurde es widerrufen. Erstelle ein neues auf der Seite Integrationen von Tellybox.",
+        "data": {
+          "token": "API-Token"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Tellybox ist unter dieser Adresse nicht erreichbar.",
+      "invalid_auth": "Tellybox lehnt dieses Token ab.",
+      "not_tellybox": "Diese Adresse scheint keine Tellybox zu sein (eine Version mit der Verwaltungs-API ist nötig).",
+      "invalid_url": "Gib eine Adresse ein, die mit http:// oder https:// beginnt.",
+      "unknown": "Unerwarteter Fehler."
+    },
+    "abort": {
+      "already_configured": "Diese Tellybox ist schon eingerichtet.",
+      "reauth_successful": "Das neue Token funktioniert.",
+      "wrong_instance": "Dieses Token gehört zu einer anderen Tellybox."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "control": "Elternknöpfe (Extrazeit, Sperren und Aktionen)"
+        },
+        "data_description": {
+          "control": "Schalte das aus bei einem Token, das nur lesen darf, zum Beispiel für eine Statusanzeige."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "now_playing_show": {
+        "name": "Läuft gerade: Serie"
+      },
+      "now_playing_episode": {
+        "name": "Läuft gerade: Folge"
+      },
+      "time_left": {
+        "name": "Restzeit"
+      },
+      "time_used_today": {
+        "name": "Heute geschaut"
+      },
+      "allowance_today": {
+        "name": "Fernsehzeit heute"
+      },
+      "session_time": {
+        "name": "Sitzungsdauer"
+      },
+      "downloads_awaiting_approval": {
+        "name": "Downloads warten auf Freigabe"
+      },
+      "download_queue": {
+        "name": "Download-Warteschlange"
+      },
+      "media_disk_use": {
+        "name": "Speicherplatz Medien"
+      }
+    },
+    "binary_sensor": {
+      "time_up": {
+        "name": "Zeit ist um"
+      },
+      "last_five_minutes": {
+        "name": "Letzte fünf Minuten"
+      },
+      "watching": {
+        "name": "Schaut"
+      },
+      "blocked": {
+        "name": "Heute gesperrt"
+      },
+      "unlimited": {
+        "name": "Heute unbegrenzt"
+      },
+      "tv_reachable": {
+        "name": "Fernseher erreichbar"
+      }
+    },
+    "button": {
+      "add_15_minutes": {
+        "name": "15 Minuten dazu"
+      },
+      "add_30_minutes": {
+        "name": "30 Minuten dazu"
+      },
+      "unlimited_today": {
+        "name": "Heute unbegrenzt"
+      },
+      "block_today": {
+        "name": "Heute sperren"
+      },
+      "clear_overrides": {
+        "name": "Ausnahmen von heute löschen"
+      },
+      "stop_now": {
+        "name": "Jetzt stoppen"
+      }
+    }
+  },
+  "exceptions": {
+    "forbidden": {
+      "message": "Dieses Tellybox-Token darf nur lesen. Erstelle ein Token mit \"Lesen und steuern\", um die Elternknöpfe zu nutzen."
+    },
+    "time_up": {
+      "message": "Tellybox lehnt ab: Jemand in der Gruppe hat keine Zeit mehr."
+    },
+    "unavailable": {
+      "message": "Tellybox erreicht den Fernseher gerade nicht; nichts wurde geändert."
+    },
+    "connection": {
+      "message": "Tellybox ist nicht erreichbar."
+    },
+    "request": {
+      "message": "Tellybox lehnt die Anfrage ab: {detail}"
+    },
+    "control_disabled": {
+      "message": "Die Elternknöpfe sind in den Optionen von Tellybox ausgeschaltet."
+    },
+    "auth": {
+      "message": "Tellybox lehnt das Token ab; Home Assistant fragt nach einem neuen."
+    },
+    "invalid_target": {
+      "message": "{device} ist keine Tellybox und kein Gerät eines Kindes."
+    },
+    "mixed_targets": {
+      "message": "Wähle entweder das Tellybox-Gerät (alle) oder Geräte von Kindern, nicht beides."
+    },
+    "multiple_servers": {
+      "message": "Wähle Geräte von nur einer Tellybox auf einmal."
+    },
+    "no_kids": {
+      "message": "Keine Kinder zum Abspielen: Wähle das Gerät eines Kindes oder starte zuerst etwas in Tellybox."
+    }
+  },
+  "services": {
+    "add_time": {
+      "name": "Zeit dazugeben",
+      "description": "Gibt heute zusätzliche Minuten. Wähle das Tellybox-Gerät für alle oder Geräte von Kindern.",
+      "fields": {
+        "device_id": {
+          "name": "Tellybox oder Kinder",
+          "description": "Das Tellybox-Gerät (alle) oder Geräte von Kindern."
+        },
+        "minutes": {
+          "name": "Minuten",
+          "description": "1 bis 240."
+        }
+      }
+    },
+    "set_unlimited_today": {
+      "name": "Heute unbegrenzt",
+      "description": "Hebt die Fernsehzeit und die Sitzungsgrenze für den Rest des Tages auf.",
+      "fields": {
+        "device_id": {
+          "name": "Tellybox oder Kinder",
+          "description": "Das Tellybox-Gerät (alle) oder Geräte von Kindern."
+        }
+      }
+    },
+    "block_today": {
+      "name": "Heute sperren",
+      "description": "Sperrt das Schauen für den Rest des Tages, sofort.",
+      "fields": {
+        "device_id": {
+          "name": "Tellybox oder Kinder",
+          "description": "Das Tellybox-Gerät (alle) oder Geräte von Kindern."
+        }
+      }
+    },
+    "clear_overrides": {
+      "name": "Ausnahmen von heute löschen",
+      "description": "Löscht unbegrenzt und gesperrt für heute. Extraminuten bleiben.",
+      "fields": {
+        "device_id": {
+          "name": "Tellybox oder Kinder",
+          "description": "Das Tellybox-Gerät (alle) oder Geräte von Kindern."
+        }
+      }
+    },
+    "stop_now": {
+      "name": "Jetzt stoppen",
+      "description": "Stoppt, was auf dem Fernseher läuft, ohne Auslaufzeit.",
+      "fields": {
+        "device_id": {
+          "name": "Tellybox",
+          "description": "Das Tellybox-Gerät."
+        }
+      }
+    },
+    "play_episode": {
+      "name": "Folge abspielen",
+      "description": "Spielt eine Folge für Kinder ab. Wird abgelehnt, wenn eines von ihnen keine Zeit mehr hat.",
+      "fields": {
+        "device_id": {
+          "name": "Tellybox oder Kinder",
+          "description": "Geräte von Kindern; das Tellybox-Gerät heißt: die Kinder, die zuletzt geschaut haben."
+        },
+        "episode_id": {
+          "name": "Folge",
+          "description": "Die Nummer der Folge in Tellybox."
+        }
+      }
+    }
+  }
+}

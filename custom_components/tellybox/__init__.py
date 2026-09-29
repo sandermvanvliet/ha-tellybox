@@ -58,7 +58,7 @@ def _resolve_targets(hass: HomeAssistant, device_ids: list[str]) -> tuple[Tellyb
         entry = None
         for entry_id in device.config_entries if device else ():
             candidate = hass.config_entries.async_get_entry(entry_id)
-            if candidate is not None and candidate.domain == DOMAIN and candidate.runtime_data is not None:
+            if candidate is not None and candidate.domain == DOMAIN and getattr(candidate, "runtime_data", None) is not None:
                 entry = candidate
                 break
         if device is None or entry is None:
