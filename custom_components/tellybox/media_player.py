@@ -29,7 +29,7 @@ from .entity import TellyboxEntity
 
 PARALLEL_UPDATES = 1
 
-PLAYER = MediaPlayerEntityDescription(key="player", translation_key="player")
+PLAYER = MediaPlayerEntityDescription(key="player")
 
 SHOW = "show"
 EPISODE = "episode"
@@ -45,7 +45,9 @@ def _parse(media_id: str) -> tuple[str, int]:
 
 
 class TellyboxMediaPlayer(TellyboxEntity, MediaPlayerEntity):
-    """Named after the device (`translation_key` name is None)."""
+    """Named after the device (no entity name)."""
+
+    _attr_name = None
 
     _attr_media_content_type = MediaType.EPISODE
     _attr_media_position_updated_at: datetime | None = None
