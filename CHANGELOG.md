@@ -4,6 +4,8 @@ Release notes for the Tellybox integration. The workflow in `.github/workflows/r
 
 ## Unreleased
 
+## 0.3.0
+
 - New sensors on the Tellybox device: inbox pending, subscriptions failing, latest inbox upload, active sessions, time up reason, playback action and next daily reset.
 - New on each kid's device: visible shows, maximum session, allowance source, maximum session source and watching on, plus a *no visible shows* problem sensor.
 - A kid with an unlimited allowance no longer breaks the state or shows a wrong "allowance today".
