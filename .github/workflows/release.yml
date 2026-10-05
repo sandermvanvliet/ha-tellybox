@@ -1,0 +1,69 @@
+name: Release
+
+# v* tags (releases): check the tag against pyproject.toml and the manifest, check the changelog
+# and that the pinned pytellybox release is on PyPI, run the tests, and create the GitHub release
+# with the changelog section as its notes. HACS installs from that release.
+# How to cut a release: docs/RELEASING.md.
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the tag matches pyproject.toml and the manifest
+        id: version
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          project_version="$(python3 -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')"
+          manifest_version="$(python3 -c 'import json; print(json.load(open("custom_components/tellybox/manifest.json"))["version"])')"
+          for found in "$project_version:pyproject.toml" "$manifest_version:custom_components/tellybox/manifest.json"; do
+            if [ "${found%%:*}" != "$tag_version" ]; then
+              echo "::error::Tag $GITHUB_REF_NAME does not match version '${found%%:*}' in ${found#*:}. Bump the version in a PR, merge it, and tag the merge commit (see docs/RELEASING.md)."
+              exit 1
+            fi
+          done
+          echo "value=$tag_version" >> "$GITHUB_OUTPUT"
+
+      - name: Extract the changelog section
+        run: |
+          version="${{ steps.version.outputs.value }}"
+          awk -v v="## $version" '$0 == v {found=1; next} /^## / {found=0} found' CHANGELOG.md > notes.md
+          if ! grep -q '[^[:space:]]' notes.md; then
+            echo "::error::CHANGELOG.md has no '## $version' section with content. Rename 'Unreleased' to '$version' in the release PR (see docs/RELEASING.md)."
+            exit 1
+          fi
+
+      - name: Check the pinned pytellybox release is on PyPI
+        run: |
+          pin="$(python3 -c 'import json; print(*json.load(open("custom_components/tellybox/manifest.json"))["requirements"])')"
+          version="${pin#pytellybox==}"
+          if ! curl -fsS "https://pypi.org/pypi/pytellybox/$version/json" >/dev/null; then
+            echo "::error::$pin is not on PyPI. Release pytellybox first, or fix the pin in manifest.json (see docs/RELEASING.md)."
+            exit 1
+          fi
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Test
+        run: |
+          pip install -r requirements_test.txt
+          pip install "$(python3 -c 'import json; print(*json.load(open("custom_components/tellybox/manifest.json"))["requirements"])')"
+          python -m pytest -q
+
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 \
+            || gh release create "$GITHUB_REF_NAME" --verify-tag \
+                 --title "${{ steps.version.outputs.value }}" --notes-file notes.md
