@@ -45,6 +45,10 @@ With a read-only token, turn off **Parent controls** in the integration's option
   - time left for the kids watching;
   - downloads awaiting approval;
   - the download queue;
+  - the subscription inbox: uploads pending, subscriptions failing, and when the latest upload arrived (a timestamp, to trigger an automation on every new upload);
+  - active sessions (the TV and in-app playback, listed in the attributes);
+  - why time is up (allowance, session maximum or blocked) and what playback does next (continue, finish then stop, stop now);
+  - the next daily reset (diagnostic);
   - media disk use (diagnostic, disabled by default).
 - **Binary sensors:** time up, last five minutes, TV reachable.
 - **Buttons for everyone:** stop now, add 15 or 30 minutes, unlimited today, block today, clear today's overrides.
@@ -54,8 +58,11 @@ With a read-only token, turn off **Parent controls** in the integration's option
   - time left;
   - time used today (usable in long-term statistics);
   - allowance today (with extra time, diagnostic);
-  - session time.
-- **Binary sensors:** watching, time up, last five minutes, blocked today, unlimited today.
+  - session time;
+  - maximum session, and where the allowance and the maximum session come from (default, custom or unlimited; diagnostic);
+  - visible shows (how many shows the kid can see);
+  - watching on (the TV's name, or the browser the kid watches on).
+- **Binary sensors:** watching, time up, last five minutes, blocked today, unlimited today, and *no visible shows* (a problem sensor for a kid whose app is empty).
 - **Buttons for that kid:** add 15 or 30 minutes, unlimited today, block today, clear today's overrides.
 
 The override buttons are hidden from auto-generated dashboards. Put them on a parent dashboard on purpose (see *Safety*).

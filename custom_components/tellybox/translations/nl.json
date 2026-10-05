@@ -74,6 +74,62 @@
       },
       "media_disk_use": {
         "name": "Schijfruimte media"
+      },
+      "inbox_pending": {
+        "name": "Inbox wacht op goedkeuring"
+      },
+      "inbox_unhealthy": {
+        "name": "Abonnementen met fouten"
+      },
+      "inbox_latest_received": {
+        "name": "Laatste upload in inbox"
+      },
+      "active_sessions": {
+        "name": "Actieve sessies"
+      },
+      "time_up_reason": {
+        "name": "Reden tijd op",
+        "state": {
+          "allowance": "Kijktijd op",
+          "session_max": "Maximale sessie",
+          "blocked": "Geblokkeerd"
+        }
+      },
+      "playback_action": {
+        "name": "Afspeelactie",
+        "state": {
+          "continue": "Doorgaan",
+          "finish_then_stop": "Afmaken, dan stoppen",
+          "stop_now": "Nu stoppen"
+        }
+      },
+      "next_reset": {
+        "name": "Volgende dagreset"
+      },
+      "max_session": {
+        "name": "Maximale sessie"
+      },
+      "allowance_source": {
+        "name": "Bron kijktijd",
+        "state": {
+          "inherit": "Standaard",
+          "custom": "Eigen",
+          "unlimited": "Onbeperkt"
+        }
+      },
+      "max_session_source": {
+        "name": "Bron maximale sessie",
+        "state": {
+          "inherit": "Standaard",
+          "custom": "Eigen",
+          "unlimited": "Onbeperkt"
+        }
+      },
+      "visible_shows": {
+        "name": "Zichtbare series"
+      },
+      "watching_on": {
+        "name": "Kijkt op"
       }
     },
     "binary_sensor": {
@@ -94,6 +150,9 @@
       },
       "tv_reachable": {
         "name": "Tv bereikbaar"
+      },
+      "no_visible_shows": {
+        "name": "Geen zichtbare series"
       }
     },
     "button": {

@@ -39,6 +39,10 @@ Running log for the Home Assistant integration. The plan is `docs/plan.md`; Tell
 ## 0.1.1 (2026-09-29)
 - Branding: the HACS and Home Assistant icon and logo now use Tellybox's mark and logo (light and dark); README logo header; social preview.
 
+## API coverage (2026-10-05, in review)
+- pytellybox: the whole admin API and the kid state (sessions, inbox, allowance and session sources, visible shows, kid events), and a fix for an unlimited (null) allowance. The in-app player endpoints are left out on purpose (HA-8).
+- Integration: sensors for the inbox (HA-9), visible shows (HA-10), sessions, time-up reason, playback action, next reset and the sources, plus a *no visible shows* problem sensor. Needs pytellybox 0.2.0, so it can't merge before that release.
+
 ## Next
 Phase 2 of the Home Assistant plan, when the owner wants it:
 - typed events on Tellybox's admin stream (F4), with HA bus events and device triggers;

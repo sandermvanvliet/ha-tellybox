@@ -29,7 +29,7 @@ class TellyboxBinarySensorDescription(BinarySensorEntityDescription):
 
 @dataclass(frozen=True, kw_only=True)
 class TellyboxProfileBinarySensorDescription(BinarySensorEntityDescription):
-    value_fn: Callable[[Profile], bool]
+    value_fn: Callable[[Profile], bool | None]
 
 
 BINARY_SENSORS: tuple[TellyboxBinarySensorDescription, ...] = (
@@ -51,6 +51,12 @@ PROFILE_BINARY_SENSORS: tuple[TellyboxProfileBinarySensorDescription, ...] = (
     TellyboxProfileBinarySensorDescription(key="time_up", translation_key="time_up", value_fn=lambda p: p.time_up),
     TellyboxProfileBinarySensorDescription(
         key="last_five_minutes", translation_key="last_five_minutes", value_fn=lambda p: p.last_five
+    ),
+    TellyboxProfileBinarySensorDescription(
+        key="no_visible_shows",  # HA-10: an empty kid app; None while an older Tellybox doesn't say
+        translation_key="no_visible_shows",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        value_fn=lambda p: None if p.visible_shows is None else p.visible_shows == 0,
     ),
     TellyboxProfileBinarySensorDescription(key="blocked", translation_key="blocked", value_fn=lambda p: p.blocked),
     TellyboxProfileBinarySensorDescription(

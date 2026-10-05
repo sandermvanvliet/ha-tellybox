@@ -85,3 +85,22 @@ async def test_unique_ids(hass, config_entry, fake_client):
         assert reg.async_get_entity_id("binary_sensor", DOMAIN, uid(key))
     assert reg.async_get_entity_id("binary_sensor", DOMAIN, uid("time_up", 1))
     assert reg.async_get_entity_id("binary_sensor", DOMAIN, uid("tv_reachable", 1)) is None
+
+
+async def test_no_visible_shows_problem(hass, config_entry, fake_client):
+    await _setup(hass, config_entry, fake_client)
+    assert _on(hass, "no_visible_shows", 1) == "off"
+    assert _on(hass, "no_visible_shows", 2) == "off"
+    entry = er.async_get(hass).async_get(entity_id(hass, "binary_sensor", "no_visible_shows", 2))
+    assert entry.original_device_class == BinarySensorDeviceClass.PROBLEM
+    fake_client.set_profile(2, visible_shows=0)
+    await push_state(hass, fake_client)
+    assert _on(hass, "no_visible_shows", 2) == "on"
+    assert _on(hass, "no_visible_shows", 1) == "off"
+
+
+async def test_no_visible_shows_unknown_on_an_older_tellybox(hass, config_entry, fake_client):
+    await _setup(hass, config_entry, fake_client)
+    fake_client.set_profile(2, visible_shows=None)
+    await push_state(hass, fake_client)
+    assert _on(hass, "no_visible_shows", 2) == "unknown"
