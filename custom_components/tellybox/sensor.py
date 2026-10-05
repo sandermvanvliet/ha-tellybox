@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -28,7 +29,7 @@ PARALLEL_UPDATES = 0
 class TellyboxSensorDescription(SensorEntityDescription):
     """A sensor on the Tellybox device."""
 
-    value_fn: Callable[[AdminState], int | float | str | None]
+    value_fn: Callable[[AdminState], int | float | str | datetime | None]
     attrs_fn: Callable[[AdminState], Mapping[str, Any]] | None = None
 
 
@@ -36,7 +37,8 @@ class TellyboxSensorDescription(SensorEntityDescription):
 class TellyboxProfileSensorDescription(SensorEntityDescription):
     """A sensor on a kid's device."""
 
-    value_fn: Callable[[Profile], int | float | str | None]
+    value_fn: Callable[[Profile], int | float | str | None] = lambda _p: None
+    state_value_fn: Callable[[AdminState, Profile], int | float | str | None] | None = None  # needs the sessions
 
 
 def _duration(**kwargs: Any) -> dict[str, Any]:
@@ -46,6 +48,20 @@ def _duration(**kwargs: Any) -> dict[str, Any]:
         "suggested_unit_of_measurement": UnitOfTime.MINUTES,
         **kwargs,
     }
+
+
+def _watching_on(state: AdminState, profile: Profile) -> str | None:
+    """Where this kid is watching: the TV's name or the browser label; None when not watching."""
+    session = next((x for x in state.sessions if profile.id in x.profile_ids), None)
+    return session.label if session else None
+
+
+def _sessions_attrs(state: AdminState) -> dict[str, Any]:
+    return {"sessions": [
+        {"target": x.target, "label": x.label, "state": x.state, "show_id": x.show_id, "episode_id": x.episode_id,
+         "profile_ids": list(x.profile_ids)}
+        for x in state.sessions
+    ]}
 
 
 def _queue(state: AdminState) -> int:
@@ -89,6 +105,52 @@ SENSORS: tuple[TellyboxSensorDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
     ),
     TellyboxSensorDescription(
+        key="inbox_pending",
+        translation_key="inbox_pending",
+        value_fn=lambda s: s.inbox.pending,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    TellyboxSensorDescription(
+        key="inbox_unhealthy",
+        translation_key="inbox_unhealthy",
+        value_fn=lambda s: s.inbox.unhealthy,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    TellyboxSensorDescription(
+        key="inbox_latest_received",
+        translation_key="inbox_latest_received",
+        value_fn=lambda s: s.inbox.latest_received_at,
+        device_class=SensorDeviceClass.TIMESTAMP,
+    ),
+    TellyboxSensorDescription(
+        key="active_sessions",
+        translation_key="active_sessions",
+        value_fn=lambda s: len(s.sessions),
+        attrs_fn=_sessions_attrs,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    TellyboxSensorDescription(
+        key="time_up_reason",
+        translation_key="time_up_reason",
+        value_fn=lambda s: s.group.reason,
+        device_class=SensorDeviceClass.ENUM,
+        options=["allowance", "session_max", "blocked"],
+    ),
+    TellyboxSensorDescription(
+        key="playback_action",
+        translation_key="playback_action",
+        value_fn=lambda s: s.group.action,
+        device_class=SensorDeviceClass.ENUM,
+        options=["continue", "finish_then_stop", "stop_now"],
+    ),
+    TellyboxSensorDescription(
+        key="next_reset",
+        translation_key="next_reset",
+        value_fn=lambda s: s.day.resets_at,
+        device_class=SensorDeviceClass.TIMESTAMP,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    TellyboxSensorDescription(
         key="media_disk_use",
         translation_key="media_disk_use",
         value_fn=lambda s: round(s.disk.media_bytes / 1_000_000_000, 2),
@@ -117,7 +179,7 @@ PROFILE_SENSORS: tuple[TellyboxProfileSensorDescription, ...] = (
     TellyboxProfileSensorDescription(
         key="allowance_today",
         translation_key="allowance_today",
-        value_fn=lambda p: p.allowance_s + (p.extra_s or 0),
+        value_fn=lambda p: None if p.allowance_s is None else p.allowance_s + (p.extra_s or 0),
         entity_category=EntityCategory.DIAGNOSTIC,
         **_duration(state_class=SensorStateClass.MEASUREMENT),
     ),
@@ -127,6 +189,40 @@ PROFILE_SENSORS: tuple[TellyboxProfileSensorDescription, ...] = (
         value_fn=lambda p: p.session_elapsed_s,
         **_duration(state_class=SensorStateClass.MEASUREMENT),
     ),
+    TellyboxProfileSensorDescription(
+        key="max_session",
+        translation_key="max_session",
+        value_fn=lambda p: p.max_session_s,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        **_duration(state_class=SensorStateClass.MEASUREMENT),
+    ),
+    TellyboxProfileSensorDescription(
+        key="allowance_source",
+        translation_key="allowance_source",
+        value_fn=lambda p: p.allowance_source,
+        device_class=SensorDeviceClass.ENUM,
+        options=["inherit", "custom", "unlimited"],
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    TellyboxProfileSensorDescription(
+        key="max_session_source",
+        translation_key="max_session_source",
+        value_fn=lambda p: p.max_session_source,
+        device_class=SensorDeviceClass.ENUM,
+        options=["inherit", "custom", "unlimited"],
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    TellyboxProfileSensorDescription(
+        key="visible_shows",
+        translation_key="visible_shows",
+        value_fn=lambda p: p.visible_shows,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    TellyboxProfileSensorDescription(
+        key="watching_on",
+        translation_key="watching_on",
+        state_value_fn=_watching_on,
+    ),
 )
 
 
@@ -134,7 +230,7 @@ class TellyboxSensor(TellyboxEntity, SensorEntity):
     entity_description: TellyboxSensorDescription
 
     @property
-    def native_value(self) -> int | float | str | None:
+    def native_value(self) -> int | float | str | datetime | None:
         return self.entity_description.value_fn(self.coordinator.data)
 
     @property
@@ -149,7 +245,12 @@ class TellyboxProfileSensor(TellyboxProfileEntity, SensorEntity):
     @property
     def native_value(self) -> int | float | str | None:
         profile = self.profile
-        return self.entity_description.value_fn(profile) if profile else None
+        if profile is None:
+            return None
+        description = self.entity_description
+        if description.state_value_fn:
+            return description.state_value_fn(self.coordinator.data, profile)
+        return description.value_fn(profile)
 
 
 async def async_setup_entry(

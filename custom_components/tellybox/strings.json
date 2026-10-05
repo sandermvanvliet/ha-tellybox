@@ -74,6 +74,62 @@
       },
       "media_disk_use": {
         "name": "Media disk use"
+      },
+      "inbox_pending": {
+        "name": "Inbox pending"
+      },
+      "inbox_unhealthy": {
+        "name": "Subscriptions failing"
+      },
+      "inbox_latest_received": {
+        "name": "Latest inbox upload"
+      },
+      "active_sessions": {
+        "name": "Active sessions"
+      },
+      "time_up_reason": {
+        "name": "Time up reason",
+        "state": {
+          "allowance": "Allowance used",
+          "session_max": "Session maximum",
+          "blocked": "Blocked"
+        }
+      },
+      "playback_action": {
+        "name": "Playback action",
+        "state": {
+          "continue": "Continue",
+          "finish_then_stop": "Finish, then stop",
+          "stop_now": "Stop now"
+        }
+      },
+      "next_reset": {
+        "name": "Next daily reset"
+      },
+      "max_session": {
+        "name": "Maximum session"
+      },
+      "allowance_source": {
+        "name": "Allowance source",
+        "state": {
+          "inherit": "Default",
+          "custom": "Custom",
+          "unlimited": "Unlimited"
+        }
+      },
+      "max_session_source": {
+        "name": "Maximum session source",
+        "state": {
+          "inherit": "Default",
+          "custom": "Custom",
+          "unlimited": "Unlimited"
+        }
+      },
+      "visible_shows": {
+        "name": "Visible shows"
+      },
+      "watching_on": {
+        "name": "Watching on"
       }
     },
     "binary_sensor": {
@@ -94,6 +150,9 @@
       },
       "tv_reachable": {
         "name": "TV reachable"
+      },
+      "no_visible_shows": {
+        "name": "No visible shows"
       }
     },
     "button": {

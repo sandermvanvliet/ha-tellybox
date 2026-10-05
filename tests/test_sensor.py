@@ -133,3 +133,88 @@ async def test_kid_entities_go_with_a_deleted_profile(hass, config_entry, fake_c
     await push_state(hass, fake_client)
     assert er.async_get(hass).async_get(time_left_2) is None
     assert _state(hass, "time_left", 1).state != "unavailable"
+
+
+async def test_inbox_sensors(hass, config_entry, fake_client):
+    await _setup(hass, config_entry, fake_client)
+    assert _state(hass, "inbox_pending").state == "4"
+    assert _state(hass, "inbox_unhealthy").state == "0"
+    latest = _state(hass, "inbox_latest_received")
+    assert latest.state == "2026-09-29T11:42:00+00:00"
+    assert latest.attributes["device_class"] == "timestamp"
+
+
+async def test_inbox_updates_on_a_new_upload(hass, config_entry, fake_client):
+    await _setup(hass, config_entry, fake_client)
+    fake_client.set_state(inbox={"pending": 5, "unhealthy": 1, "latest_received_at": "2026-09-29T12:00:00+00:00"})
+    await push_state(hass, fake_client)
+    assert _state(hass, "inbox_pending").state == "5"
+    assert _state(hass, "inbox_unhealthy").state == "1"
+    assert _state(hass, "inbox_latest_received").state == "2026-09-29T12:00:00+00:00"
+
+
+async def test_inbox_empty_has_no_latest_upload(hass, config_entry, fake_client):
+    await _setup(hass, config_entry, fake_client)
+    fake_client.set_state(inbox={"pending": 0, "unhealthy": 0, "latest_received_at": None})
+    await push_state(hass, fake_client)
+    assert _state(hass, "inbox_pending").state == "0"
+    assert _state(hass, "inbox_latest_received").state == "unknown"
+
+
+async def test_sessions_and_watching_on(hass, config_entry, fake_client):
+    await _setup(hass, config_entry, fake_client)
+    sessions = _state(hass, "active_sessions")
+    assert sessions.state == "1"
+    assert sessions.attributes["sessions"] == [
+        {"target": "tv", "label": "TV", "state": "playing", "show_id": 2, "episode_id": 4, "profile_ids": [1]}
+    ]
+    assert _state(hass, "watching_on", 1).state == "TV"
+    assert _state(hass, "watching_on", 2).state == "unknown"
+    fake_client.set_state(sessions=[
+        {"key": "device:abc", "target": "device", "label": "iPhone Safari", "device_id": "abc", "episode_id": 5,
+         "show_id": 2, "title": "Lost Ball", "state": "paused", "position_s": 10, "duration_s": 600,
+         "profile_ids": [2]},
+    ])
+    await push_state(hass, fake_client)
+    assert _state(hass, "active_sessions").state == "1"
+    assert _state(hass, "watching_on", 1).state == "unknown"
+    assert _state(hass, "watching_on", 2).state == "iPhone Safari"
+    fake_client.set_state(sessions=[])
+    await push_state(hass, fake_client)
+    assert _state(hass, "active_sessions").state == "0"
+
+
+async def test_group_reason_action_and_reset(hass, config_entry, fake_client):
+    await _setup(hass, config_entry, fake_client)
+    assert _state(hass, "time_up_reason").state == "unknown"
+    assert _state(hass, "playback_action").state == "continue"
+    assert _state(hass, "next_reset").state == "2026-09-30T02:00:00+00:00"
+    fake_client.set_state(group={**fake_client.state_data["group"], "reason": "session_max",
+                                 "action": "finish_then_stop"})
+    await push_state(hass, fake_client)
+    assert _state(hass, "time_up_reason").state == "session_max"
+    assert _state(hass, "playback_action").state == "finish_then_stop"
+    reg = er.async_get(hass)
+    assert reg.async_get(entity_id(hass, "sensor", "next_reset")).entity_category == er.EntityCategory.DIAGNOSTIC
+
+
+async def test_visible_shows_and_sources(hass, config_entry, fake_client):
+    await _setup(hass, config_entry, fake_client)
+    assert _state(hass, "visible_shows", 1).state == "2"
+    assert _state(hass, "visible_shows", 2).state == "1"
+    assert _state(hass, "allowance_source", 1).state == "inherit"
+    assert _state(hass, "max_session_source", 1).state == "custom"
+    assert float(_state(hass, "max_session", 1).state) == 90
+    assert _state(hass, "max_session", 2).state == "unknown"  # no maximum
+    fake_client.set_profile(2, visible_shows=0)
+    await push_state(hass, fake_client)
+    assert _state(hass, "visible_shows", 2).state == "0"
+
+
+async def test_unlimited_allowance_profile(hass, config_entry, fake_client):
+    await _setup(hass, config_entry, fake_client)
+    fake_client.set_profile(1, allowance_s=None, allowance_source="unlimited", remaining_s=None, unlimited=False)
+    await push_state(hass, fake_client)
+    assert _state(hass, "allowance_today", 1).state == "unknown"
+    assert _state(hass, "allowance_source", 1).state == "unlimited"
+    assert _state(hass, "time_left", 1).state == "unknown"

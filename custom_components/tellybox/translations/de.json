@@ -74,6 +74,62 @@
       },
       "media_disk_use": {
         "name": "Speicherplatz Medien"
+      },
+      "inbox_pending": {
+        "name": "Posteingang wartet auf Freigabe"
+      },
+      "inbox_unhealthy": {
+        "name": "Abos mit Fehlern"
+      },
+      "inbox_latest_received": {
+        "name": "Letzter Upload im Posteingang"
+      },
+      "active_sessions": {
+        "name": "Aktive Sitzungen"
+      },
+      "time_up_reason": {
+        "name": "Grund für Zeit abgelaufen",
+        "state": {
+          "allowance": "Zeitkontingent aufgebraucht",
+          "session_max": "Maximale Sitzung",
+          "blocked": "Gesperrt"
+        }
+      },
+      "playback_action": {
+        "name": "Wiedergabeaktion",
+        "state": {
+          "continue": "Weiter",
+          "finish_then_stop": "Beenden, dann stoppen",
+          "stop_now": "Sofort stoppen"
+        }
+      },
+      "next_reset": {
+        "name": "Nächster Tageswechsel"
+      },
+      "max_session": {
+        "name": "Maximale Sitzung"
+      },
+      "allowance_source": {
+        "name": "Quelle des Zeitkontingents",
+        "state": {
+          "inherit": "Standard",
+          "custom": "Eigene",
+          "unlimited": "Unbegrenzt"
+        }
+      },
+      "max_session_source": {
+        "name": "Quelle der maximalen Sitzung",
+        "state": {
+          "inherit": "Standard",
+          "custom": "Eigene",
+          "unlimited": "Unbegrenzt"
+        }
+      },
+      "visible_shows": {
+        "name": "Sichtbare Serien"
+      },
+      "watching_on": {
+        "name": "Schaut auf"
       }
     },
     "binary_sensor": {
@@ -94,6 +150,9 @@
       },
       "tv_reachable": {
         "name": "Fernseher erreichbar"
+      },
+      "no_visible_shows": {
+        "name": "Keine sichtbaren Serien"
       }
     },
     "button": {
