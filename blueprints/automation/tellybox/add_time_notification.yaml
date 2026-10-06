@@ -1,0 +1,136 @@
+blueprint:
+  name: Tellybox add-time notification
+  description: >-
+    When a Tellybox "time up" or "last five minutes" sensor turns on, sends an actionable
+    notification to a phone with the Home Assistant mobile app. Tapping the button adds the extra
+    minutes through the `tellybox.add_time` action, so it only works while the integration's
+    control option is on (otherwise the run fails with a visible error and no time is added).
+    Use the Tellybox device's sensor for whoever is watching, or a kid's sensor for one kid.
+    Nothing is added unless you tap the button, and nothing is offered when the kid is unlimited
+    today. The unlimited check looks for the kid's "Unlimited today" binary sensor on the same device
+    and relies on its entity id ending in `_unlimited_today` (the English name), so if you renamed that
+    entity or use another language, the check may not find it.
+  domain: automation
+  source_url: https://github.com/sandermvanvliet/ha-tellybox/blob/main/blueprints/automation/tellybox/add_time_notification.yaml
+  homeassistant:
+    min_version: 2026.4.0
+  input:
+    trigger_sensor:
+      name: Time sensor
+      description: >-
+        The Tellybox "Time up" or "Last five minutes" binary sensor that triggers the notification.
+      selector:
+        entity:
+          domain: binary_sensor
+          integration: tellybox
+    notify_device:
+      name: Phone to notify
+      description: The device running the Home Assistant mobile app that gets the notification.
+      selector:
+        device:
+          integration: mobile_app
+    minutes:
+      name: Minutes to add
+      description: How many extra minutes the button adds.
+      default: 15
+      selector:
+        number:
+          min: 1
+          max: 240
+          step: 1
+          unit_of_measurement: min
+          mode: box
+    title:
+      name: Notification title
+      description: Title of the notification. You can use {{ kid }} and {{ minutes }}.
+      default: Tellybox
+      selector:
+        text: {}
+    message:
+      name: Notification message
+      description: >-
+        Text of the notification. You can use {{ kid }} (name of the device the sensor belongs to)
+        and {{ minutes }}. It is only a question, so do not word it as if time was already added.
+      default: "{{ kid }}'s time is almost up. Add {{ minutes }} minutes?"
+      selector:
+        text:
+          multiline: true
+    answer_timeout_minutes:
+      name: Wait for an answer
+      description: >-
+        How long to wait for the button to be tapped. After that nothing happens and the
+        notification stays as it is.
+      default: 15
+      selector:
+        number:
+          min: 1
+          max: 240
+          step: 1
+          unit_of_measurement: min
+          mode: box
+
+mode: single
+max_exceeded: silent
+
+variables:
+  kid: >-
+    {% set d = device_id(trigger.entity_id) %}
+    {{ (device_attr(d, 'name_by_user') or device_attr(d, 'name') or '') if d else '' }}
+  kid_device_id: "{{ device_id(trigger.entity_id) }}"
+  minutes: !input minutes
+  action_id: "TELLYBOX_ADD_{{ minutes | int }}_{{ trigger.entity_id }}"
+  notification_tag: "tellybox_add_time_{{ trigger.entity_id }}"
+  # Best effort: extra minutes are ignored for an unlimited kid, so skip the offer. The Tellybox
+  # device has no such sensor, so for "everyone" this list is empty and the check passes.
+  unlimited_sensors: >-
+    {{ device_entities(kid_device_id)
+       | select('match', '^binary_sensor\.[a-z0-9_]*_unlimited_today$') | list
+       if kid_device_id else [] }}
+
+triggers:
+  - trigger: state
+    entity_id: !input trigger_sensor
+    to: "on"
+    not_from:
+      - unavailable
+      - unknown
+
+conditions:
+  - condition: template
+    alias: Kid is not unlimited today
+    value_template: "{{ unlimited_sensors | select('is_state', 'on') | list | length == 0 }}"
+
+actions:
+  - alias: Ask on the phone
+    device_id: !input notify_device
+    domain: mobile_app
+    type: notify
+    title: !input title
+    message: !input message
+    data:
+      tag: "{{ notification_tag }}"
+      actions:
+        - action: "{{ action_id }}"
+          title: "Add {{ minutes | int }} minutes"
+  - alias: Wait for the button
+    wait_for_trigger:
+      - trigger: event
+        event_type: mobile_app_notification_action
+        event_data:
+          action: "{{ action_id }}"
+    timeout:
+      minutes: !input answer_timeout_minutes
+    continue_on_timeout: false
+  - alias: Add the time
+    action: tellybox.add_time
+    target:
+      device_id: "{{ kid_device_id }}"
+    data:
+      minutes: "{{ minutes | int }}"
+  - alias: Clear the notification
+    device_id: !input notify_device
+    domain: mobile_app
+    type: notify
+    message: clear_notification
+    data:
+      tag: "{{ notification_tag }}"

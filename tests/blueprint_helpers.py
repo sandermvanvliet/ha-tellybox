@@ -30,9 +30,19 @@ Use `setup_platform` + `fake_client.set_profile/set_state` for real integration 
 
 from __future__ import annotations
 
+import asyncio
 import shutil
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
+from unittest.mock import patch
+
+import pytest
+import voluptuous as vol
+from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import template
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from homeassistant.core import HomeAssistant
 from homeassistant.setup import async_setup_component
@@ -72,3 +82,63 @@ async def automation_from_blueprint(
         },
     )
     await hass.async_block_till_done()
+
+
+def _fake_platform(sent: list[dict]) -> SimpleNamespace:
+    """Stands in for `homeassistant.components.mobile_app.device_action`.
+
+    The real module cannot be imported in this test environment (mobile_app pulls in cloud, which needs
+    optional native libraries). The schema and the rendering below mirror the real `notify` device action
+    (verified in HA's source: ACTION_SCHEMA with message/title/data, rendered with `render_complex`), and
+    the real one then calls `notify.<service>` with `target`, `message`, `title`, `data`.
+    """
+    schema = cv.DEVICE_ACTION_BASE_SCHEMA.extend(
+        {
+            vol.Required("type"): "notify",
+            vol.Required("message"): cv.template,
+            vol.Optional("title"): cv.template,
+            vol.Optional("data"): cv.template_complex,
+        }
+    )
+
+    async def call(hass, config, variables, context):
+        data = {"device_id": config["device_id"]}
+        for key in ("message", "title", "data"):
+            if key in config:
+                data[key] = template.render_complex(config[key], variables)
+        sent.append(data)
+
+    return SimpleNamespace(ACTION_SCHEMA=schema, async_call_action_from_config=call)
+
+
+@pytest.fixture
+def notified():
+    """Notifications sent through the (stand-in) mobile_app `notify` device action."""
+    sent: list[dict] = []
+    platform = _fake_platform(sent)
+
+    async def get_platform(hass, domain, automation_type):
+        assert domain == "mobile_app"
+        return platform
+
+    with (
+        patch("homeassistant.components.device_automation.action.async_get_device_automation_platform", get_platform),
+        patch("homeassistant.components.device_automation.helpers.async_get_device_automation_platform", get_platform),
+    ):
+        yield sent
+
+
+async def add_phone(hass: HomeAssistant) -> str:
+    entry = MockConfigEntry(domain="mobile_app")
+    entry.add_to_hass(hass)
+    device = dr.async_get(hass).async_get_or_create(
+        config_entry_id=entry.entry_id, identifiers={("mobile_app", "test-phone")}, name="Test Phone"
+    )
+    return device.id
+
+
+async def settle() -> None:
+    """Let queued work run. `hass.async_block_till_done()` is not used after the trigger because it waits
+    for the automation run itself, which sits in `wait_for_trigger` until a tap or the timeout."""
+    for _ in range(50):
+        await asyncio.sleep(0)
