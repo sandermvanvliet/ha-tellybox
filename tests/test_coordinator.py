@@ -106,9 +106,23 @@ async def test_unavailable_after_threshold_and_recovers(hass, core, config_entry
     assert calls[-1] is True
 
 
-async def test_stream_401_starts_reauth_and_stops(hass, core, config_entry, freezer):
+async def test_info_401_starts_reauth_and_stops(hass, core, config_entry, freezer):
     opens = core.stream_opens
     core.fail_with = TellyboxAuthError("revoked")
+    core.break_stream()
+    await hass.async_block_till_done()
+    await tick(hass, freezer, RECONNECT_MIN_S + 0.1)
+    assert any(f["context"]["source"] == "reauth" for f in hass.config_entries.flow.async_progress())
+    reconnects = core.stream_opens
+    await tick(hass, freezer, RECONNECT_MAX_S + 1)
+    assert core.stream_opens == reconnects  # stopped
+    assert reconnects == opens  # the 401 comes from the capability check before the stream opens
+
+
+async def test_stream_401_starts_reauth_and_stops(hass, core, config_entry, freezer):
+    """The real case: /api/info needs no token, so a revoked token shows when the stream opens."""
+    opens = core.stream_opens
+    core.stream_fail_with = TellyboxAuthError("revoked")
     core.break_stream()
     await hass.async_block_till_done()
     await tick(hass, freezer, RECONNECT_MIN_S + 0.1)

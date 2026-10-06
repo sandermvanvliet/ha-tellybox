@@ -33,6 +33,7 @@ async def test_tellybox_device_triggers(hass, setup_integration):
     triggers = await async_get_triggers(hass, main.id)
     assert [t["type"] for t in triggers] == list(SERVER_EVENT_TYPES)
     assert all(t["device_id"] == main.id for t in triggers)
+    assert "download_ready" in [t["type"] for t in triggers]
 
 
 async def test_foreign_device_has_no_triggers(hass, setup_integration):

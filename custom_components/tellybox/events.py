@@ -11,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Final
 
-from pytellybox import AdminState
+from pytellybox import AdminState, ServerEvent
 
 EVENT_NAME: Final = "tellybox_event"
 
@@ -21,6 +21,7 @@ EVENT_STARTED_WATCHING: Final = "started_watching"
 EVENT_STOPPED_WATCHING: Final = "stopped_watching"
 EVENT_OVERRIDE_APPLIED: Final = "override_applied"  # extras: override (extra_time|unlimited|blocked|cleared), minutes
 EVENT_INBOX_ITEM: Final = "inbox_item_arrived"  # extras: pending
+EVENT_DOWNLOAD_READY: Final = "download_ready"  # extras: held_ready, new_ready (typed events only)
 EVENT_TV_UNREACHABLE: Final = "tv_unreachable"
 EVENT_TV_REACHABLE: Final = "tv_reachable"
 
@@ -31,7 +32,12 @@ PROFILE_EVENT_TYPES: Final[tuple[str, ...]] = (
     EVENT_STOPPED_WATCHING,
     EVENT_OVERRIDE_APPLIED,
 )
-SERVER_EVENT_TYPES: Final[tuple[str, ...]] = (EVENT_TV_UNREACHABLE, EVENT_TV_REACHABLE, EVENT_INBOX_ITEM)
+SERVER_EVENT_TYPES: Final[tuple[str, ...]] = (
+    EVENT_TV_UNREACHABLE,
+    EVENT_TV_REACHABLE,
+    EVENT_INBOX_ITEM,
+    EVENT_DOWNLOAD_READY,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -122,6 +128,55 @@ def _later(new_at: Any, old_at: Any) -> bool:
         return bool(new_at > old_at)
     except TypeError:  # naive vs aware: fall back to "changed"
         return bool(new_at != old_at)
+
+
+_PLAYBACK_KEYS: Final = ("episode_id", "show_id", "title", "show", "target", "label")
+_OVERRIDE_NAMES: Final = {
+    "extra_minutes": "extra_time",
+    "unlimited": "unlimited",
+    "block": "blocked",
+    "clear": "cleared",
+    "stop_now": "stop_now",
+}
+
+
+def from_server_event(event: ServerEvent) -> list[TellyboxEvent]:
+    """Map a typed server event to `TellyboxEvent`s: one per kid in `profile_ids` for per-kid types, one
+    server-level event (profile_id None) for the others. An unknown type passes through as a server-level event
+    carrying the event's data, so new server events work without a release here. Never raises."""
+    data = dict(event.data)
+    kind = event.type
+
+    def per_kid(type_: str, extra: dict[str, Any]) -> list[TellyboxEvent]:
+        return [TellyboxEvent(type_, pid, dict(extra)) for pid in event.profile_ids]
+
+    def playback() -> dict[str, Any]:
+        return {key: data.get(key) for key in _PLAYBACK_KEYS}
+
+    if kind == "time_up":
+        return per_kid(EVENT_TIME_UP, {"reason": data.get("reason")})
+    if kind == "last_five":
+        return per_kid(EVENT_LAST_FIVE, {"remaining_s": data.get("remaining_s")})
+    if kind == "playback_started":
+        return per_kid(EVENT_STARTED_WATCHING, playback())
+    if kind == "playback_stopped":
+        return per_kid(
+            EVENT_STOPPED_WATCHING, {"reason": data.get("reason"), "position_s": data.get("position_s"), **playback()}
+        )
+    if kind == "override_applied":
+        what = data.get("kind")
+        extra: dict[str, Any] = {"override": _OVERRIDE_NAMES.get(what, what) if isinstance(what, str) else what}
+        if what == "extra_minutes":
+            extra["minutes"] = data.get("value")
+        extra["source"] = data.get("source") if isinstance(data.get("source"), str) else None
+        return per_kid(EVENT_OVERRIDE_APPLIED, extra)
+    if kind == "inbox_item_arrived":
+        return [TellyboxEvent(EVENT_INBOX_ITEM, None, {"pending": data.get("pending"), "new_items": data.get("new_items")})]
+    if kind == "download_ready":
+        return [TellyboxEvent(EVENT_DOWNLOAD_READY, None, {"held_ready": data.get("held_ready"), "new_ready": data.get("new_ready")})]
+    if not kind:
+        return []
+    return [TellyboxEvent(kind, None, data)]
 
 
 def build_payload(

@@ -4,6 +4,8 @@ Release notes for the Tellybox integration. The workflow in `.github/workflows/r
 
 ## Unreleased
 
+- Events now use Tellybox's typed events when it has them: `stopped_watching` says why playback ended, `override_applied` says who applied the override, and there is a new `download_ready` event and device trigger. Older Tellybox versions keep working: the integration derives events from state changes as before (needs pytellybox 0.6.0 and, for typed events, Tellybox 0.6.0).
+
 ## 0.5.0
 
 - Per-kid sensors for the time used yesterday, the 7-day average and the last watched episode (needs a Tellybox with the history endpoint, HA-12; older Tellybox gets no history sensors).
