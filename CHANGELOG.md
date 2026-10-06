@@ -4,7 +4,10 @@ Release notes for the Tellybox integration. The workflow in `.github/workflows/r
 
 ## Unreleased
 
+## 0.5.0
+
 - Per-kid sensors for the time used yesterday, the 7-day average and the last watched episode (needs a Tellybox with the history endpoint, HA-12; older Tellybox gets no history sensors).
+- Requires pytellybox 0.5.0 (installed automatically). The history sensors need Tellybox 0.5.0; against an older Tellybox they simply don't appear. Everything else works as in 0.4.0.
 
 ## 0.4.0
 
