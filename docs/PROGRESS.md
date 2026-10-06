@@ -67,8 +67,12 @@ Running log for the Home Assistant integration. The plan is `docs/plan.md`; Tell
 - Each kid's "Watching on" sensor now has `target` (tv or device) and `state` attributes.
 - Tasks S1–S5 (sessions helper, dynamic sensor with removal and sweep, strings and translations, attributes on watching_on, docs) built on branch `plan-5-session-entities` (PR pending).
 
+## Plan 2: Home Assistant blueprints for Tellybox (2026-10-06, in review)
+- Five ready-to-import automation blueprints: five-minute warning, TV off at time-up, actionable "add time" phone notification, inbox ping and empty-kid-app alert. Blueprints are English only (no Home Assistant translation mechanism) and update independently via re-import.
+- Tasks T1–T5 (harness, reference blueprint, all five blueprints with tests) built in parallel; T6 (docs) built separately.
+- Docs added to README (new *Blueprints* section with table and import badges, replaced duplicate example automations with blueprint links), CHANGELOG (user-visible feature), and this log.
+
 ## Next
 Phase 2 of the Home Assistant plan, when the owner wants it:
 - typed events on Tellybox's admin stream (F4), with HA bus events and device triggers;
-- opt-in zeroconf discovery;
-- blueprints (five-minute warning, TV off at time-up, an actionable "add time" notification).
+- opt-in zeroconf discovery.

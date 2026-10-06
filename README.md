@@ -90,6 +90,18 @@ Each action targets devices: the **Tellybox device** means everyone, and **kids'
 | `tellybox.stop_now` | |
 | `tellybox.play_episode` | `episode_id`. Plays for the kids' devices, or the kids who watched last. It is refused when one of them is out of time. |
 
+## Blueprints
+
+Five ready-to-import automation blueprints cover common parent automations, so you don't hand-write YAML. Blueprints are English only (Home Assistant has no translation mechanism for blueprint text). HACS does not install them: import by URL from the *My Home Assistant* badge below, or in *Settings → Automations → Blueprints → Import*.
+
+| Blueprint | Entities | Import |
+|---|---|---|
+| **Five-minute warning** — speak, flash a light, or send a notification when the kids have five minutes left. | Tellybox or kid `last_five_minutes` binary sensor | [![Import blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fsandermvanvliet%2Fha-tellybox%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Ftellybox%2Ffive_minute_warning.yaml) |
+| **TV off at time-up** — turn off the TV after the kids' allowance ends and playback has stopped. *Playback may continue up to 15 minutes after time-up (finish-the-episode grace); the TV turns off only once the player is idle.* | Tellybox `time_up` binary sensor (typically the Tellybox device's), Tellybox media player, and the TV to control | [![Import blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fsandermvanvliet%2Fha-tellybox%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Ftellybox%2Ftv_off_at_time_up.yaml) |
+| **Add time notification** — send an actionable phone notification at time-up or five minutes left; tapping adds time. Requires the Home Assistant mobile app. *Anyone holding the parent's phone can tap the button; it carries the same trust as the override buttons.* | Kid's `time_up` or `last_five_minutes` binary sensor (not the Tellybox device's), mobile app device | [![Import blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fsandermvanvliet%2Fha-tellybox%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Ftellybox%2Fadd_time_notification.yaml) |
+| **Inbox ping** — notify when a subscription upload waits for approval. | Inbox `latest_received_at` and `pending` sensors, mobile app device | [![Import blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fsandermvanvliet%2Fha-tellybox%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Ftellybox%2Finbox_ping.yaml) |
+| **Empty kid app alert** — alert when a kid has no visible shows to watch. | Kid `no_visible_shows` binary sensor, mobile app device | [![Import blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fsandermvanvliet%2Fha-tellybox%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Ftellybox%2Fempty_kid_app_alert.yaml) |
+
 ## Events and automations
 
 The integration fires a Home Assistant bus event called `tellybox_event` for each state transition. Use it in automations to react to Tellybox events without writing template triggers on binary sensors.
@@ -147,37 +159,7 @@ actions:
 
 ## Example automations
 
-Speak a warning at five minutes left:
-
-```yaml
-triggers:
-  - trigger: state
-    entity_id: binary_sensor.tellybox_last_five_minutes
-    to: "on"
-actions:
-  - action: tts.speak
-    target: { entity_id: tts.home_assistant_cloud }
-    data:
-      media_player_entity_id: media_player.kitchen_speaker
-      message: "Five more minutes of TV."
-```
-
-Turn the TV off two minutes after time is up, once playback has stopped:
-
-```yaml
-triggers:
-  - trigger: state
-    entity_id: binary_sensor.tellybox_time_up
-    to: "on"
-    for: "00:02:00"
-conditions:
-  - condition: state
-    entity_id: media_player.tellybox
-    state: idle
-actions:
-  - action: media_player.turn_off
-    target: { entity_id: media_player.living_room_tv }
-```
+For a spoken warning at five minutes left, an actionable time-adding notification, or to turn off the TV when time is up, use the **[Blueprints](#blueprints)** above.
 
 Block watching at 18:30 on school nights:
 
@@ -193,7 +175,7 @@ actions:
     target: { device_id: YOUR_TELLYBOX_DEVICE_ID }
 ```
 
-Get a notification when downloads wait for approval:
+Get a notification when downloads wait for approval (held playlist downloads; for new subscription uploads use the *Inbox ping* blueprint):
 
 ```yaml
 triggers:
