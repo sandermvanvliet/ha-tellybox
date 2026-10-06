@@ -143,6 +143,13 @@
           "paused": "Gepauzeerd",
           "buffering": "Bufferen"
         }
+      },
+      "ui_mode": {
+        "name": "Stijl van de kinder-app",
+        "state": {
+          "icons": "Plaatjes",
+          "text": "Tekst"
+        }
       }
     },
     "binary_sensor": {
@@ -166,6 +173,9 @@
       },
       "no_visible_shows": {
         "name": "Geen zichtbare series"
+      },
+      "watch_in_app": {
+        "name": "Kijken in de app"
       }
     },
     "button": {

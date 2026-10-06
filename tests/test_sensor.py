@@ -226,3 +226,30 @@ async def test_unlimited_allowance_profile(hass, config_entry, fake_client):
     assert _state(hass, "allowance_today", 1).state == "unknown"
     assert _state(hass, "allowance_source", 1).state == "unlimited"
     assert _state(hass, "time_left", 1).state == "unknown"
+
+
+async def test_ui_mode_disabled_diagnostic_enum(hass, config_entry, fake_client):
+    await _setup(hass, config_entry, fake_client)
+    entry = er.async_get(hass).async_get(entity_id(hass, "sensor", "ui_mode", 1))
+    assert entry.unique_id == uid("ui_mode", 1)
+    assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
+    assert entry.entity_category == er.EntityCategory.DIAGNOSTIC
+    assert entry.original_device_class == SensorDeviceClass.ENUM
+    assert entry.capabilities["options"] == ["icons", "text"]
+    assert hass.states.get(entry.entity_id) is None
+
+
+async def test_ui_mode_states_update_and_unknown(hass, config_entry, fake_client):
+    reg = er.async_get(hass)
+    config_entry.add_to_hass(hass)
+    for pid in (1, 2):  # enable the disabled-by-default entities up front
+        reg.async_get_or_create("sensor", DOMAIN, uid("ui_mode", pid), config_entry=config_entry, disabled_by=None)
+    await _setup(hass, config_entry, fake_client)
+    assert _state(hass, "ui_mode", 1).state == "icons"
+    assert _state(hass, "ui_mode", 2).state == "text"
+    fake_client.set_profile(1, ui_mode="text")
+    await push_state(hass, fake_client)
+    assert _state(hass, "ui_mode", 1).state == "text"
+    fake_client.set_profile(2, ui_mode=None)  # an older Tellybox
+    await push_state(hass, fake_client)
+    assert _state(hass, "ui_mode", 2).state == "unknown"

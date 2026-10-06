@@ -58,6 +58,11 @@ PROFILE_BINARY_SENSORS: tuple[TellyboxProfileBinarySensorDescription, ...] = (
         device_class=BinarySensorDeviceClass.PROBLEM,
         value_fn=lambda p: None if p.visible_shows is None else p.visible_shows == 0,
     ),
+    TellyboxProfileBinarySensorDescription(
+        key="watch_in_app",  # HA-11: may the kid watch in the browser app; None while an older Tellybox doesn't say
+        translation_key="watch_in_app",
+        value_fn=lambda p: p.watch_in_app,
+    ),
     TellyboxProfileBinarySensorDescription(key="blocked", translation_key="blocked", value_fn=lambda p: p.blocked),
     TellyboxProfileBinarySensorDescription(
         key="unlimited", translation_key="unlimited", value_fn=lambda p: p.unlimited

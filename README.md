@@ -45,8 +45,8 @@ The full list, generated from the code, is in the [entity reference](https://git
 
 **A device for each kid**, added and removed as profiles change in Tellybox, with:
 - **Media player:** shows what *that kid* is watching and plays an episode *for that kid only*. Browsing shows only what that kid can see. Playing always starts on the TV, never in the kid's browser, and Tellybox refuses it when the kid is out of time. There is no pause, play or stop: Tellybox's are household-wide, so use the Tellybox device's player for those. Playing for one kid replaces any group playback that kid is in (Tellybox's rule, the same call the kid's own app makes). While the kid watches in a browser it is a read-only view, with a `watching_on` attribute holding the browser label.
-- **Sensors:** time left, time used today, allowance today, session time, maximum session and where the allowance and maximum come from, visible shows, and watching on (the TV's name or the browser, with `target` and `state` attributes).
-- **Binary sensors:** watching, time up, last five minutes, blocked today, unlimited today, and no visible shows.
+- **Sensors:** time left, time used today, allowance today, session time, maximum session and where the allowance and maximum come from, visible shows, and watching on (the TV's name or the browser, with `target` and `state` attributes). Diagnostic, off by default: kid app style.
+- **Binary sensors:** watching, time up, last five minutes, blocked today, unlimited today, no visible shows, and watch in app.
 - **Buttons (parent controls):** add 15 or 30 minutes, unlimited today, block today, clear today's overrides.
 
 The override buttons are hidden from auto-generated dashboards. Put them on a parent dashboard on purpose (see [Safety](https://github.com/sandermvanvliet/ha-tellybox/blob/main/docs/safety.md)).

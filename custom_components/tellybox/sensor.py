@@ -213,6 +213,15 @@ PROFILE_SENSORS: tuple[TellyboxProfileSensorDescription, ...] = (
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     TellyboxProfileSensorDescription(
+        key="ui_mode",  # HA-11: the kid app style; None while an older Tellybox doesn't say
+        translation_key="ui_mode",
+        value_fn=lambda p: p.ui_mode,
+        device_class=SensorDeviceClass.ENUM,
+        options=["icons", "text"],
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+    ),
+    TellyboxProfileSensorDescription(
         key="max_session_source",
         translation_key="max_session_source",
         value_fn=lambda p: p.max_session_source,
