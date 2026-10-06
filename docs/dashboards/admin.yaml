@@ -94,6 +94,7 @@ views:
               - entity: binary_sensor.mila_blocked_today
               - entity: binary_sensor.mila_unlimited_today
               - entity: binary_sensor.mila_no_visible_shows
+              - entity: binary_sensor.mila_watch_in_app
           - type: grid
             columns: 3
             square: false
@@ -159,6 +160,7 @@ views:
               - entity: binary_sensor.noah_blocked_today
               - entity: binary_sensor.noah_unlimited_today
               - entity: binary_sensor.noah_no_visible_shows
+              - entity: binary_sensor.noah_watch_in_app
           - type: grid
             columns: 3
             square: false

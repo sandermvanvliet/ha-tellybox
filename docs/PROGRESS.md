@@ -76,6 +76,9 @@ Running log for the Home Assistant integration. The plan is `docs/plan.md`; Tell
 - Dashboard examples (`docs/dashboards.md`, `docs/dashboards/admin.yaml`, `docs/dashboards/kid-safe.yaml`), `docs/automations.md`, the generated `docs/entities.md` and a new `docs/safety.md`, with `tests/test_docs_examples.py` checking entities, actions, read-only kid view, links and privacy.
 - README is now a landing page: events moved to `docs/events.md` and Repairs to `docs/repairs.md` (content unchanged), example automations are in `docs/automations.md`, and a Documentation list links every page with absolute URLs.
 
+## Profile fields in Home Assistant (plans 6 and 7), in progress (2026-10-06)
+- Plan 7 first: per-kid `watch_in_app` binary sensor and diagnostic `ui_mode` enum sensor (disabled by default), unknown on an older Tellybox. Plan 6 is done too: a per-kid `image.<kid>_picture` entity (photo, else avatar; cached, refetched on a path change or hourly; served through HA's image proxy). The `pytellybox` pin bump in `manifest.json` waits for pytellybox's release.
+
 ## Next
 Phase 2 of the Home Assistant plan, when the owner wants it:
 - typed events on Tellybox's admin stream (F4), with HA bus events and device triggers;

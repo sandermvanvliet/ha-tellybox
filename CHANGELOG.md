@@ -4,6 +4,8 @@ Release notes for the Tellybox integration. The workflow in `.github/workflows/r
 
 ## Unreleased
 
+- Each kid's device has a Picture entity with the kid's photo or avatar (needs a Tellybox with the profile fields, HA-11).
+- Per-kid sensors for whether a kid may watch in the app and for the kid app style (needs a Tellybox with the profile fields, HA-11; older Tellybox shows them as unknown).
 - Documentation: dashboard examples for parents and a read-only kid view, an automations page, a generated entity reference, and a safety page; the README is now a shorter landing page.
 - Blueprints to import: five-minute warning, TV off at time up, an actionable 'add time' phone notification, inbox ping and an empty-kid-app alert (English only).
 - Each kid's device has a media player: it shows what that kid is watching and plays an episode for that kid only. It has no pause or stop, because Tellybox's are household-wide. Tellybox still refuses when the kid is out of time.

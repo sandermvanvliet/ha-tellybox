@@ -143,6 +143,13 @@
           "paused": "Paused",
           "buffering": "Buffering"
         }
+      },
+      "ui_mode": {
+        "name": "Kid app style",
+        "state": {
+          "icons": "Pictures",
+          "text": "Text"
+        }
       }
     },
     "binary_sensor": {
@@ -166,6 +173,9 @@
       },
       "no_visible_shows": {
         "name": "No visible shows"
+      },
+      "watch_in_app": {
+        "name": "Watch in app"
       }
     },
     "button": {
@@ -186,6 +196,11 @@
       },
       "stop_now": {
         "name": "Stop now"
+      }
+    },
+    "image": {
+      "picture": {
+        "name": "Picture"
       }
     }
   },

@@ -29,6 +29,6 @@ jobs:
         with:
           python-version: "3.14"
       - run: pip install -r requirements_test.txt
-      # Until pytellybox is on PyPI, install it from its repository (the manifest pins the PyPI release).
-      - run: pip install "pytellybox==0.2.0" || pip install "git+https://github.com/sandermvanvliet/pytellybox@main"
+      # Test against the pytellybox release the manifest pins, so the two can't drift apart.
+      - run: pip install "$(python -c 'import json; print(json.load(open("custom_components/tellybox/manifest.json"))["requirements"][0])')"
       - run: python -m pytest -q

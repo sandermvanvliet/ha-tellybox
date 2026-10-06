@@ -143,6 +143,13 @@
           "paused": "Pausiert",
           "buffering": "Puffert"
         }
+      },
+      "ui_mode": {
+        "name": "Stil der Kinder-App",
+        "state": {
+          "icons": "Bilder",
+          "text": "Text"
+        }
       }
     },
     "binary_sensor": {
@@ -166,6 +173,9 @@
       },
       "no_visible_shows": {
         "name": "Keine sichtbaren Serien"
+      },
+      "watch_in_app": {
+        "name": "In der App schauen"
       }
     },
     "button": {
@@ -186,6 +196,11 @@
       },
       "stop_now": {
         "name": "Jetzt stoppen"
+      }
+    },
+    "image": {
+      "picture": {
+        "name": "Bild"
       }
     }
   },

@@ -104,3 +104,23 @@ async def test_no_visible_shows_unknown_on_an_older_tellybox(hass, config_entry,
     fake_client.set_profile(2, visible_shows=None)
     await push_state(hass, fake_client)
     assert _on(hass, "no_visible_shows", 2) == "unknown"
+
+
+async def test_watch_in_app(hass, config_entry, fake_client):
+    await _setup(hass, config_entry, fake_client)
+    assert _on(hass, "watch_in_app", 1) == "off"
+    assert _on(hass, "watch_in_app", 2) == "on"
+    reg = er.async_get(hass)
+    entry = reg.async_get(entity_id(hass, "binary_sensor", "watch_in_app", 1))
+    assert entry.unique_id == uid("watch_in_app", 1)
+    assert entry.entity_category is None and entry.disabled_by is None
+    fake_client.set_profile(1, watch_in_app=True)
+    await push_state(hass, fake_client)
+    assert _on(hass, "watch_in_app", 1) == "on"
+
+
+async def test_watch_in_app_unknown_on_an_older_tellybox(hass, config_entry, fake_client):
+    await _setup(hass, config_entry, fake_client)
+    fake_client.set_profile(2, watch_in_app=None)
+    await push_state(hass, fake_client)
+    assert _on(hass, "watch_in_app", 2) == "unknown"

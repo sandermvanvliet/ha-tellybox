@@ -41,12 +41,14 @@ Entity ids follow the device name, so a renamed device or kid changes the prefix
 | `binary_sensor.<kid>_no_visible_shows` | No visible shows |  | problem |  |  |
 | `binary_sensor.<kid>_time_up` | Time up |  |  |  |  |
 | `binary_sensor.<kid>_unlimited_today` | Unlimited today |  |  |  |  |
+| `binary_sensor.<kid>_watch_in_app` | Watch in app |  |  |  |  |
 | `binary_sensor.<kid>_watching` | Watching |  |  |  |  |
 | `button.<kid>_add_15_minutes` | Add 15 minutes |  |  |  | parent controls only; hidden by default |
 | `button.<kid>_add_30_minutes` | Add 30 minutes |  |  |  | parent controls only; hidden by default |
 | `button.<kid>_block_today` | Block today |  |  |  | parent controls only; hidden by default |
 | `button.<kid>_clear_today_s_overrides` | Clear today's overrides |  |  |  | parent controls only; hidden by default |
 | `button.<kid>_unlimited_today` | Unlimited today |  |  |  | parent controls only; hidden by default |
+| `image.<kid>_picture` | Picture |  |  |  |  |
 | `media_player.<kid>` | (device name) |  |  |  |  |
 | `sensor.<kid>_allowance_source` | Allowance source | diagnostic | enum |  | values: inherit, custom, unlimited |
 | `sensor.<kid>_allowance_today` | Allowance today | diagnostic | duration | s |  |
@@ -55,5 +57,6 @@ Entity ids follow the device name, so a renamed device or kid changes the prefix
 | `sensor.<kid>_session_time` | Session time |  | duration | s |  |
 | `sensor.<kid>_time_left` | Time left |  | duration | s |  |
 | `sensor.<kid>_time_used_today` | Time used today |  | duration | s |  |
+| `sensor.<kid>_kid_app_style` | Kid app style | diagnostic | enum |  | disabled by default; values: icons, text |
 | `sensor.<kid>_visible_shows` | Visible shows |  |  |  |  |
 | `sensor.<kid>_watching_on` | Watching on |  |  |  |  |
