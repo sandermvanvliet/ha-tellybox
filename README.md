@@ -54,6 +54,15 @@ With a read-only token, turn off **Parent controls** in the integration's option
 - **Binary sensors:** time up, last five minutes, TV reachable.
 - **Buttons for everyone:** stop now, add 15 or 30 minutes, unlimited today, block today, clear today's overrides.
 
+### Per-kid players
+
+Each kid's device has its own **media player** entity, named after the kid. It shows what *that kid* is watching and plays an episode *for that kid only*:
+- **Browsing:** shows only what that kid can see (show access applies per kid).
+- **Playing:** always starts playback on the TV, never in the kid's browser; Tellybox refuses it with a message when the kid is out of time.
+- **No pause, play or stop:** Tellybox's are household-wide (TV-level), so these controls aren't offered here. Use the Tellybox device's main player for those.
+- **Playing one kid replaces group playback:** starting playback for one kid ends any group session the kid is in. It's Tellybox's rule, and it is the same call the kid's own app makes.
+- **In-app playback:** a read-only view when the kid is watching on their browser, with a `watching_on` attribute showing the browser label (for example "iPhone Safari").
+
 **A device for each kid**, added and removed as profiles change in Tellybox, with:
 - **Sensors:**
   - time left;
