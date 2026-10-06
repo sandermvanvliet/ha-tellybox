@@ -21,6 +21,7 @@ from pytellybox import AdminState, Profile
 
 from .coordinator import TellyboxConfigEntry, TellyboxCoordinator
 from .entity import TellyboxEntity, TellyboxProfileEntity, add_profile_entities
+from .session_sensor import async_setup_session_sensors
 
 PARALLEL_UPDATES = 0
 
@@ -263,3 +264,4 @@ async def async_setup_entry(
         return [TellyboxProfileSensor(coordinator, d, profile_id) for d in PROFILE_SENSORS]
 
     entry.async_on_unload(add_profile_entities(coordinator, async_add_entities, factory))
+    await async_setup_session_sensors(hass, entry, coordinator, async_add_entities)
