@@ -21,7 +21,7 @@ from custom_components.tellybox.binary_sensor import BINARY_SENSORS, PROFILE_BIN
 from custom_components.tellybox.button import BUTTONS, PROFILE_BUTTONS  # noqa: E402
 from custom_components.tellybox.image import PICTURE  # noqa: E402
 from custom_components.tellybox.media_player import PLAYER  # noqa: E402
-from custom_components.tellybox.sensor import PROFILE_SENSORS, SENSORS  # noqa: E402
+from custom_components.tellybox.sensor import HISTORY_SENSORS, PROFILE_SENSORS, SENSORS  # noqa: E402
 
 STRINGS = ROOT / "custom_components" / "tellybox" / "strings.json"
 OUTPUT = ROOT / "docs" / "entities.md"
@@ -93,7 +93,7 @@ def render() -> str:
     )
     out += ["", "## Each kid (`<kid>`)", ""]
     out += _table(
-        [("sensor", PROFILE_SENSORS), ("binary_sensor", PROFILE_BINARY_SENSORS), ("button", PROFILE_BUTTONS), ("image", (PICTURE,)), ("media_player", (PLAYER,))],
+        [("sensor", PROFILE_SENSORS), ("sensor", HISTORY_SENSORS), ("binary_sensor", PROFILE_BINARY_SENSORS), ("button", PROFILE_BUTTONS), ("image", (PICTURE,)), ("media_player", (PLAYER,))],
         "<kid>",
         names,
     )

@@ -52,11 +52,14 @@ Entity ids follow the device name, so a renamed device or kid changes the prefix
 | `media_player.<kid>` | (device name) |  |  |  |  |
 | `sensor.<kid>_allowance_source` | Allowance source | diagnostic | enum |  | values: inherit, custom, unlimited |
 | `sensor.<kid>_allowance_today` | Allowance today | diagnostic | duration | s |  |
+| `sensor.<kid>_last_watched` | Last watched |  | timestamp |  |  |
 | `sensor.<kid>_maximum_session` | Maximum session | diagnostic | duration | s |  |
 | `sensor.<kid>_maximum_session_source` | Maximum session source | diagnostic | enum |  | values: inherit, custom, unlimited |
 | `sensor.<kid>_session_time` | Session time |  | duration | s |  |
 | `sensor.<kid>_time_left` | Time left |  | duration | s |  |
+| `sensor.<kid>_average_time_used_7_days` | Average time used (7 days) |  | duration | s |  |
 | `sensor.<kid>_time_used_today` | Time used today |  | duration | s |  |
+| `sensor.<kid>_time_used_yesterday` | Time used yesterday |  | duration | s |  |
 | `sensor.<kid>_kid_app_style` | Kid app style | diagnostic | enum |  | disabled by default; values: icons, text |
 | `sensor.<kid>_visible_shows` | Visible shows |  |  |  |  |
 | `sensor.<kid>_watching_on` | Watching on |  |  |  |  |

@@ -150,6 +150,15 @@
           "icons": "Plaatjes",
           "text": "Tekst"
         }
+      },
+      "time_used_yesterday": {
+        "name": "Gebruikte tijd gisteren"
+      },
+      "time_used_7d_average": {
+        "name": "Gemiddelde gebruikte tijd (7 dagen)"
+      },
+      "last_watched": {
+        "name": "Laatst gekeken"
       }
     },
     "binary_sensor": {

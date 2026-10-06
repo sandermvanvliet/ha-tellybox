@@ -79,6 +79,9 @@ Running log for the Home Assistant integration. The plan is `docs/plan.md`; Tell
 ## Profile fields in Home Assistant (plans 6 and 7), in progress (2026-10-06)
 - Plan 7 first: per-kid `watch_in_app` binary sensor and diagnostic `ui_mode` enum sensor (disabled by default), unknown on an older Tellybox. Plan 6 is done too: a per-kid `image.<kid>_picture` entity (photo, else avatar; cached, refetched on a path change or hourly; served through HA's image proxy). The `pytellybox` pin bump in `manifest.json` waits for pytellybox's release.
 
+## Viewing history in Home Assistant (plan 12, HA-12), in progress (2026-10-06)
+- A history coordinator (polled every 30 minutes and refreshed when the timer day rolls over) and three per-kid sensors: time used yesterday, the 7-day average and last watched (timestamp, with episode title, show and target as attributes). Created only when Tellybox's `/api/info` lists the `history` capability; a failing `info()` or history fetch never fails setup. No backfill of long-term statistics. Waits for pytellybox 0.5.0 (the `manifest.json` pin is unchanged).
+
 ## Next
 Phase 2 of the Home Assistant plan, when the owner wants it:
 - typed events on Tellybox's admin stream (F4), with HA bus events and device triggers;

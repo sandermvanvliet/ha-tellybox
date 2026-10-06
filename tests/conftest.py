@@ -11,6 +11,7 @@ import asyncio
 import copy
 import json
 from collections.abc import AsyncIterator, Sequence
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
 from unittest.mock import patch
@@ -26,6 +27,7 @@ from pytellybox import (
     TellyboxConnectionError,
     TellyboxForbiddenError,
     TellyboxTimeUpError,
+    UsageHistory,
 )
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -37,6 +39,29 @@ TOKEN = "tbx_" + "a" * 43
 INSTANCE_ID = "3f2a9c0e5b7d4e1f8a6b2c3d4e5f6a7b"
 TINY_JPEG = b"\xff\xd8\xff\xe0tiny-jpeg\xff\xd9"
 TINY_SVG = b'<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>'
+
+
+def history_dict() -> dict[str, Any]:
+    """Eight days, today first (2026-09-29, the fixture's timer day), for Mila (1) and Noah (2).
+
+    Yesterday is 3600 s for Mila and 1800 s for Noah. Mila's last watch has a title and show, Noah never watched.
+    """
+    today = date(2026, 9, 29)
+
+    def days(used: list[int]) -> list[dict[str, Any]]:
+        return [{"date": (today - timedelta(days=i)).isoformat(), "used_s": u, "extra_s": 0,
+                 "unlimited": False, "blocked": False} for i, u in enumerate(used)]
+
+    return {
+        "today": today.isoformat(), "days": 8,
+        "profiles": [
+            {"id": 1, "name": "Mila", "days": days([2710, 3600, 0, 1800, 2400, 3000, 600, 1200]),
+             "last_watched": {"episode_id": 4, "title": "Alongside", "show": "Harbour Pups",
+                              "started_at": "2026-09-29T08:00:00+00:00", "ended_at": "2026-09-29T08:20:00+00:00",
+                              "target": "tv"}},
+            {"id": 2, "name": "Noah", "days": days([0, 1800, 1800, 0, 900, 0, 2700, 0]), "last_watched": None},
+        ],
+    }
 
 
 def state_dict() -> dict[str, Any]:
@@ -63,6 +88,9 @@ class FakeTellyboxClient:
         self.images: dict[str, Image] = {}  # path -> what `image()` returns; unknown paths get a default
         self.image_error: Exception | None = None  # `image()` raises this
         self.image_paths: list[str] = []  # every path requested
+        self.capabilities: tuple[str, ...] = ("state", "events", "overrides", "profiles", "history")  # `info()`
+        self.history_data = history_dict()  # what `history()` returns (the wire dict)
+        self.history_error: Exception | None = None  # only `history()` raises this
 
     # -- helpers for tests
     def set_state(self, **changes: Any) -> None:
@@ -98,7 +126,19 @@ class FakeTellyboxClient:
     async def info(self) -> Info:
         self.calls.append(("info",))
         self._check()
-        return Info(INSTANCE_ID, self.state_data["version"], 1, ("state", "events", "overrides", "profiles"))
+        return Info(INSTANCE_ID, self.state_data["version"], 1, tuple(self.capabilities))
+
+    async def history(self, days: int = 7, profile_ids: Sequence[int] | None = None) -> UsageHistory:
+        self.calls.append(("history", days, None if profile_ids is None else list(profile_ids)))
+        self._check()
+        if self.history_error is not None:
+            raise self.history_error
+        data = copy.deepcopy(self.history_data)
+        data["profiles"] = [p for p in data["profiles"] if profile_ids is None or p["id"] in profile_ids]
+        for p in data["profiles"]:
+            p["days"] = p["days"][:days]
+        data["days"] = days
+        return UsageHistory.from_dict(data)
 
     async def state(self) -> AdminState:
         self.calls.append(("state",))

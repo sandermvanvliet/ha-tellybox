@@ -19,6 +19,10 @@ UNAVAILABLE_AFTER_S: Final = 60.0
 
 EXTRA_MINUTES_MAX: Final = 240
 
+# Viewing history (HA-12): polled every 30 minutes (and at the daily rollover), only when Tellybox advertises it.
+HISTORY_POLL_S: Final = 1800
+CAPABILITY_HISTORY: Final = "history"
+
 # Repairs issues: options (minutes / GB; 0 turns the issue off), grace and hysteresis, issue ids.
 CONF_TV_UNREACHABLE_MINUTES: Final = "tv_unreachable_minutes"
 DEFAULT_TV_UNREACHABLE_MINUTES: Final = 60

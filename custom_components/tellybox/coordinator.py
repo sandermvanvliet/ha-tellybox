@@ -8,7 +8,7 @@ import logging
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
@@ -38,6 +38,9 @@ from .const import (
 )
 from .events import EVENT_NAME, build_payload, diff_states
 
+if TYPE_CHECKING:
+    from .history_coordinator import TellyboxHistoryCoordinator
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -47,6 +50,7 @@ class TellyboxData:
 
     client: TellyboxClient
     coordinator: TellyboxCoordinator
+    history: TellyboxHistoryCoordinator | None = None  # only when Tellybox advertises the history capability
 
 
 type TellyboxConfigEntry = ConfigEntry[TellyboxData]

@@ -4,6 +4,8 @@ Release notes for the Tellybox integration. The workflow in `.github/workflows/r
 
 ## Unreleased
 
+- Per-kid sensors for the time used yesterday, the 7-day average and the last watched episode (needs a Tellybox with the history endpoint, HA-12; older Tellybox gets no history sensors).
+
 ## 0.4.0
 
 - Each kid's device has a Picture entity with the kid's photo or avatar (needs a Tellybox with the profile fields, HA-11).
