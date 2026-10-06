@@ -58,6 +58,10 @@ Running log for the Home Assistant integration. The plan is `docs/plan.md`; Tell
 - Tasks T1–T3 (constants and options, repairs logic and wiring, docs) built on branch `repairs-issues`.
 - Docs added to README (Repairs section explaining each issue, the grace periods, options and that they clear by themselves), CHANGELOG (user-visible feature), and this log.
 
+## Plan 4: A media player per kid (2026-10-06, in review)
+- Each kid's device has a media player entity that shows what that kid is watching and plays an episode for that kid only. Browsing shows only what that kid can see; playing always targets the TV. No pause, play or stop (they are household-wide); playing for one kid replaces a sibling's group playback (Tellybox's rule). In-app playback is read-only with a `watching_on` attribute.
+- Tasks P4-1 (extract shared media helpers to `media_common.py`), P4-2 (kid media player entity) and P4-3 (docs) built on branch `kid-media-player` (PR pending).
+
 ## Plan 5: Per-session entities for in-app playback (2026-10-06, in review)
 - One sensor per browser playing in the kid app: created when playback starts and removed 30 seconds after it ends, on the Tellybox device. State is loading/playing/paused/buffering; attributes include label, title, show_id, episode_id, kids, profile_ids, position_s, duration_s (title and positions not recorded in history); browser id never exposed.
 - Each kid's "Watching on" sensor now has `target` (tv or device) and `state` attributes.

@@ -42,7 +42,7 @@ def _value(v: Any) -> str:
 def _row(platform: str, description: Any, prefix: str, names: dict[str, Any]) -> tuple[str, str, list[str]]:
     key = description.key
     if platform == "media_player":
-        name, entity_id = "(device name)", "media_player.tellybox"
+        name, entity_id = "(device name)", f"media_player.{prefix}"
     else:
         name = names[platform][key]["name"]
         entity_id = f"{platform}.{prefix}_{slugify(name)}"
@@ -92,7 +92,7 @@ def render() -> str:
     )
     out += ["", "## Each kid (`<kid>`)", ""]
     out += _table(
-        [("sensor", PROFILE_SENSORS), ("binary_sensor", PROFILE_BINARY_SENSORS), ("button", PROFILE_BUTTONS)],
+        [("sensor", PROFILE_SENSORS), ("binary_sensor", PROFILE_BINARY_SENSORS), ("button", PROFILE_BUTTONS), ("media_player", (PLAYER,))],
         "<kid>",
         names,
     )
