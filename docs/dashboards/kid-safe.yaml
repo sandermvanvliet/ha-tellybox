@@ -1,0 +1,95 @@
+# Tellybox read-only view for a kid's tablet. No buttons, no actions.
+# It is not a security boundary: see docs/safety.md.
+# Written against Home Assistant 2026.4 and core cards only.
+title: Telly
+views:
+  - title: Telly
+    path: telly
+    icon: mdi:television
+    cards:
+      - type: vertical-stack
+        cards:
+          - type: markdown
+            content: "## Now playing"
+          - type: grid
+            columns: 2
+            square: false
+            cards:
+          - type: tile
+            entity: sensor.tellybox_now_playing_show
+            name: Show
+            icon: mdi:television-classic
+            tap_action:
+              action: none
+          - type: tile
+            entity: sensor.tellybox_now_playing_episode
+            name: Episode
+            icon: mdi:play-circle-outline
+            tap_action:
+              action: none
+      # Mila
+      - type: vertical-stack
+        cards:
+          - type: markdown
+            content: "## Mila"
+          - type: grid
+            columns: 2
+            square: false
+            cards:
+          - type: tile
+            entity: sensor.mila_time_left
+            name: Time left
+            icon: mdi:timer-sand
+            tap_action:
+              action: none
+          - type: tile
+            entity: binary_sensor.mila_watching
+            name: Watching
+            icon: mdi:television-play
+            tap_action:
+              action: none
+          - type: tile
+            entity: binary_sensor.mila_time_up
+            name: Time up
+            icon: mdi:timer-off-outline
+            tap_action:
+              action: none
+          - type: tile
+            entity: binary_sensor.mila_last_five_minutes
+            name: Last five minutes
+            icon: mdi:timer-alert-outline
+            tap_action:
+              action: none
+      # Noah
+      - type: vertical-stack
+        cards:
+          - type: markdown
+            content: "## Noah"
+          - type: grid
+            columns: 2
+            square: false
+            cards:
+          - type: tile
+            entity: sensor.noah_time_left
+            name: Time left
+            icon: mdi:timer-sand
+            tap_action:
+              action: none
+          - type: tile
+            entity: binary_sensor.noah_watching
+            name: Watching
+            icon: mdi:television-play
+            tap_action:
+              action: none
+          - type: tile
+            entity: binary_sensor.noah_time_up
+            name: Time up
+            icon: mdi:timer-off-outline
+            tap_action:
+              action: none
+          - type: tile
+            entity: binary_sensor.noah_last_five_minutes
+            name: Last five minutes
+            icon: mdi:timer-alert-outline
+            tap_action:
+              action: none

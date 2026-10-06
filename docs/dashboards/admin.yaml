@@ -1,0 +1,237 @@
+# Tellybox parent dashboard. Needs the Tellybox integration with Parent controls on.
+# Written against Home Assistant 2026.4 and core cards only.
+# Replace mila and noah with your kids' names (see docs/dashboards.md).
+title: Tellybox
+views:
+  - title: Parents
+    path: parents
+    icon: mdi:television-play
+    cards:
+      # The Tellybox device: what is on screen and the buttons that affect everyone
+      - type: vertical-stack
+        cards:
+          - type: entities
+            title: Tellybox
+            entities:
+              - entity: sensor.tellybox_now_playing_show
+              - entity: sensor.tellybox_now_playing_episode
+              - entity: sensor.tellybox_time_left
+              - entity: sensor.tellybox_active_sessions
+              - entity: binary_sensor.tellybox_time_up
+              - entity: binary_sensor.tellybox_last_five_minutes
+          - type: grid
+            columns: 3
+            square: false
+            cards:
+          - type: tile
+            entity: button.tellybox_stop_now
+            name: Stop now
+            icon: mdi:stop
+            tap_action:
+              action: perform-action
+              confirmation: true
+              perform_action: button.press
+              target:
+                entity_id: button.tellybox_stop_now
+          - type: tile
+            entity: button.tellybox_add_15_minutes
+            name: Add 15 minutes
+            icon: mdi:timer-plus-outline
+            tap_action:
+              action: perform-action
+              perform_action: button.press
+              target:
+                entity_id: button.tellybox_add_15_minutes
+          - type: tile
+            entity: button.tellybox_add_30_minutes
+            name: Add 30 minutes
+            icon: mdi:timer-plus
+            tap_action:
+              action: perform-action
+              perform_action: button.press
+              target:
+                entity_id: button.tellybox_add_30_minutes
+          - type: tile
+            entity: button.tellybox_unlimited_today
+            name: Unlimited today
+            icon: mdi:infinity
+            tap_action:
+              action: perform-action
+              confirmation: true
+              perform_action: button.press
+              target:
+                entity_id: button.tellybox_unlimited_today
+          - type: tile
+            entity: button.tellybox_block_today
+            name: Block today
+            icon: mdi:cancel
+            tap_action:
+              action: perform-action
+              confirmation: true
+              perform_action: button.press
+              target:
+                entity_id: button.tellybox_block_today
+          - type: tile
+            entity: button.tellybox_clear_today_s_overrides
+            name: Clear today's overrides
+            icon: mdi:restore
+            tap_action:
+              action: perform-action
+              perform_action: button.press
+              target:
+                entity_id: button.tellybox_clear_today_s_overrides
+      # Mila
+      - type: vertical-stack
+        cards:
+          - type: entities
+            title: Mila
+            entities:
+              - entity: sensor.mila_time_left
+              - entity: sensor.mila_time_used_today
+              - entity: binary_sensor.mila_watching
+              - entity: binary_sensor.mila_time_up
+              - entity: binary_sensor.mila_last_five_minutes
+              - entity: binary_sensor.mila_blocked_today
+              - entity: binary_sensor.mila_unlimited_today
+              - entity: binary_sensor.mila_no_visible_shows
+          - type: grid
+            columns: 3
+            square: false
+            cards:
+          - type: tile
+            entity: button.mila_add_15_minutes
+            name: Add 15 minutes
+            icon: mdi:timer-plus-outline
+            tap_action:
+              action: perform-action
+              perform_action: button.press
+              target:
+                entity_id: button.mila_add_15_minutes
+          - type: tile
+            entity: button.mila_add_30_minutes
+            name: Add 30 minutes
+            icon: mdi:timer-plus
+            tap_action:
+              action: perform-action
+              perform_action: button.press
+              target:
+                entity_id: button.mila_add_30_minutes
+          - type: tile
+            entity: button.mila_unlimited_today
+            name: Unlimited today
+            icon: mdi:infinity
+            tap_action:
+              action: perform-action
+              confirmation: true
+              perform_action: button.press
+              target:
+                entity_id: button.mila_unlimited_today
+          - type: tile
+            entity: button.mila_block_today
+            name: Block today
+            icon: mdi:cancel
+            tap_action:
+              action: perform-action
+              confirmation: true
+              perform_action: button.press
+              target:
+                entity_id: button.mila_block_today
+          - type: tile
+            entity: button.mila_clear_today_s_overrides
+            name: Clear today's overrides
+            icon: mdi:restore
+            tap_action:
+              action: perform-action
+              perform_action: button.press
+              target:
+                entity_id: button.mila_clear_today_s_overrides
+      # Noah
+      - type: vertical-stack
+        cards:
+          - type: entities
+            title: Noah
+            entities:
+              - entity: sensor.noah_time_left
+              - entity: sensor.noah_time_used_today
+              - entity: binary_sensor.noah_watching
+              - entity: binary_sensor.noah_time_up
+              - entity: binary_sensor.noah_last_five_minutes
+              - entity: binary_sensor.noah_blocked_today
+              - entity: binary_sensor.noah_unlimited_today
+              - entity: binary_sensor.noah_no_visible_shows
+          - type: grid
+            columns: 3
+            square: false
+            cards:
+          - type: tile
+            entity: button.noah_add_15_minutes
+            name: Add 15 minutes
+            icon: mdi:timer-plus-outline
+            tap_action:
+              action: perform-action
+              perform_action: button.press
+              target:
+                entity_id: button.noah_add_15_minutes
+          - type: tile
+            entity: button.noah_add_30_minutes
+            name: Add 30 minutes
+            icon: mdi:timer-plus
+            tap_action:
+              action: perform-action
+              perform_action: button.press
+              target:
+                entity_id: button.noah_add_30_minutes
+          - type: tile
+            entity: button.noah_unlimited_today
+            name: Unlimited today
+            icon: mdi:infinity
+            tap_action:
+              action: perform-action
+              confirmation: true
+              perform_action: button.press
+              target:
+                entity_id: button.noah_unlimited_today
+          - type: tile
+            entity: button.noah_block_today
+            name: Block today
+            icon: mdi:cancel
+            tap_action:
+              action: perform-action
+              confirmation: true
+              perform_action: button.press
+              target:
+                entity_id: button.noah_block_today
+          - type: tile
+            entity: button.noah_clear_today_s_overrides
+            name: Clear today's overrides
+            icon: mdi:restore
+            tap_action:
+              action: perform-action
+              perform_action: button.press
+              target:
+                entity_id: button.noah_clear_today_s_overrides
+      # Inbox and downloads
+      - type: entities
+        title: Inbox and downloads
+        entities:
+          - entity: sensor.tellybox_inbox_pending
+          - entity: sensor.tellybox_subscriptions_failing
+          - entity: sensor.tellybox_latest_inbox_upload
+          - entity: sensor.tellybox_downloads_awaiting_approval
+          - entity: sensor.tellybox_download_queue
+      # Health
+      - type: glance
+        title: Health
+        entities:
+          - entity: binary_sensor.tellybox_tv_reachable
+          - entity: sensor.tellybox_next_daily_reset
+      # Time used per kid, one bar per day
+      - type: statistics-graph
+        title: Time used today
+        chart_type: bar
+        days_to_show: 14
+        stat_types:
+          - max
+        entities:
+          - sensor.mila_time_used_today
+          - sensor.noah_time_used_today

@@ -34,48 +34,22 @@ With a read-only token, turn off **Parent controls** in the integration's option
 
 ## What you get
 
+The full list, generated from the code, is in the [entity reference](https://github.com/sandermvanvliet/ha-tellybox/blob/main/docs/entities.md). In short:
+
 **A Tellybox device**, with:
-- **Media player:**
-  - what's playing, with its thumbnail;
-  - pause and resume;
-  - browse continue watching and the shows, and play an episode (for the kids who watched last);
-  - stop, with parent controls on.
-- **Sensors:**
-  - now playing (show and episode);
-  - time left for the kids watching;
-  - downloads awaiting approval;
-  - the download queue;
-  - the subscription inbox: uploads pending, subscriptions failing, and when the latest upload arrived (a timestamp, to trigger an automation on every new upload);
-  - active sessions (the TV and in-app playback, listed in the attributes);
-  - why time is up (allowance, session maximum or blocked) and what playback does next (continue, finish then stop, stop now);
-  - the next daily reset (diagnostic);
-  - media disk use (diagnostic, disabled by default);
-  - a sensor for each browser playing in the kid app (*Watching on <browser label>*): one sensor per browser, created when playback starts and removed 30 seconds after it ends, with state (loading, playing, paused or buffering), the browser label, episode title and position, the kids and their profile ids, and the episode id and show id. Title and position are not recorded in history. These sensors are created dynamically and are not listed in `docs/entities.md`.
+- **Media player:** what's playing with its thumbnail, pause and resume, browsing continue watching and the shows, playing an episode (for the kids who watched last), and stop with parent controls on.
+- **Sensors:** now playing, time left, downloads awaiting approval, the download queue, the subscription inbox (uploads pending, subscriptions failing, when the latest upload arrived), active sessions, why time is up and what playback does next, the next daily reset and media disk use (diagnostic; disk use is disabled by default).
+- **Watching on <browser> sensors:** one sensor per browser playing in the kid app, created when playback starts and removed 30 seconds after it ends. The state is loading, playing, paused or buffering. Attributes: the browser label, episode title and position, the kids and their profile ids, and the episode id and show id. Title and position are not recorded in history. These sensors are created dynamically, so they are not in the entity reference.
 - **Binary sensors:** time up, last five minutes, TV reachable.
-- **Buttons for everyone:** stop now, add 15 or 30 minutes, unlimited today, block today, clear today's overrides.
-
-### Per-kid players
-
-Each kid's device has its own **media player** entity, named after the kid. It shows what *that kid* is watching and plays an episode *for that kid only*:
-- **Browsing:** shows only what that kid can see (show access applies per kid).
-- **Playing:** always starts playback on the TV, never in the kid's browser; Tellybox refuses it with a message when the kid is out of time.
-- **No pause, play or stop:** Tellybox's are household-wide (TV-level), so these controls aren't offered here. Use the Tellybox device's main player for those.
-- **Playing one kid replaces group playback:** starting playback for one kid ends any group session the kid is in. It's Tellybox's rule, and it is the same call the kid's own app makes.
-- **In-app playback:** a read-only view when the kid is watching on their browser, with a `watching_on` attribute showing the browser label (for example "iPhone Safari").
+- **Buttons (parent controls):** stop now, add 15 or 30 minutes, unlimited today, block today, clear today's overrides.
 
 **A device for each kid**, added and removed as profiles change in Tellybox, with:
-- **Sensors:**
-  - time left;
-  - time used today (usable in long-term statistics);
-  - allowance today (with extra time, diagnostic);
-  - session time;
-  - maximum session, and where the allowance and the maximum session come from (default, custom or unlimited; diagnostic);
-  - visible shows (how many shows the kid can see);
-  - watching on (the TV's name, or the browser the kid watches on), with `target` (tv or device) and `state` attributes.
-- **Binary sensors:** watching, time up, last five minutes, blocked today, unlimited today, and *no visible shows* (a problem sensor for a kid whose app is empty).
-- **Buttons for that kid:** add 15 or 30 minutes, unlimited today, block today, clear today's overrides.
+- **Media player:** shows what *that kid* is watching and plays an episode *for that kid only*. Browsing shows only what that kid can see. Playing always starts on the TV, never in the kid's browser, and Tellybox refuses it when the kid is out of time. There is no pause, play or stop: Tellybox's are household-wide, so use the Tellybox device's player for those. Playing for one kid replaces any group playback that kid is in (Tellybox's rule, the same call the kid's own app makes). While the kid watches in a browser it is a read-only view, with a `watching_on` attribute holding the browser label.
+- **Sensors:** time left, time used today, allowance today, session time, maximum session and where the allowance and maximum come from, visible shows, and watching on (the TV's name or the browser, with `target` and `state` attributes).
+- **Binary sensors:** watching, time up, last five minutes, blocked today, unlimited today, and no visible shows.
+- **Buttons (parent controls):** add 15 or 30 minutes, unlimited today, block today, clear today's overrides.
 
-The override buttons are hidden from auto-generated dashboards. Put them on a parent dashboard on purpose (see *Safety*).
+The override buttons are hidden from auto-generated dashboards. Put them on a parent dashboard on purpose (see [Safety](https://github.com/sandermvanvliet/ha-tellybox/blob/main/docs/safety.md)).
 
 ## Actions
 
@@ -104,108 +78,30 @@ Five ready-to-import automation blueprints cover common parent automations, so y
 
 ## Events and automations
 
-The integration fires a Home Assistant bus event called `tellybox_event` for each state transition. Use it in automations to react to Tellybox events without writing template triggers on binary sensors.
-
-All events carry these payload keys:
-
-| Key | Value |
-|---|---|
-| `type` | The event type (see table below). |
-| `device_id` | Home Assistant device registry id of the device the event is about (a kid's device, or the Tellybox device). |
-| `instance_id` | The Tellybox server's instance id. |
-| `profile_id` | *(kid events only)* The kid's profile id. |
-| `profile_name` | *(kid events only)* The kid's name. |
-
-**Event types:**
-
-| Type | Device | Fires when | Extra keys |
-|---|---|---|---|
-| `time_up` | kid | The kid may not pick again. | `reason` (`allowance`, `session_max`, `blocked`, or `None`) |
-| `last_five_minutes` | kid | Last five minutes of the allowance or session start. | |
-| `started_watching` | kid | The kid started playback. | |
-| `stopped_watching` | kid | Playback stopped. | |
-| `override_applied` | kid | An override was applied. | `override` (`extra_time`, `unlimited`, `blocked`, or `cleared`); `minutes` (for `extra_time` only) |
-| `inbox_item_arrived` | Tellybox | A new subscription upload arrived. | `pending` (int, number of uploads awaiting review) |
-| `tv_unreachable` | Tellybox | The TV went offline. | |
-| `tv_reachable` | Tellybox | The TV came back online. | |
-
-### Device triggers
-
-In the Home Assistant automation editor, each device offers its event types as device triggers. Choose **Device → Tellybox → *[event type]*** to trigger on that event.
-
-### YAML example
-
-Send a notification to a parent's phone when Mila stops watching:
-
-```yaml
-triggers:
-  - trigger: event
-    event_type: tellybox_event
-    event_data:
-      type: stopped_watching
-      profile_name: Mila
-actions:
-  - action: notify.notify
-    data:
-      message: "Mila stopped watching."
-```
-
-### Limits
-
-- **No events on Home Assistant startup:** the first state yields no events, so a restart mid-playback doesn't fire a burst. A change that happens while the connection to Tellybox is down is reported once, when it comes back.
-- **No override attribution:** `override_applied` cannot say who applied it (an admin page, Home Assistant or another token): Tellybox's state doesn't carry that.
-- **No stop-now event:** Tellybox's state doesn't record a *stop now*, so it has no event of its own. Playback ending shows up as `stopped_watching`.
-- **`time_up` ≠ "TV off":** `time_up` fires when the kid *may not pick again*. The episode in progress usually runs on through the finish-the-episode grace period (up to 15 minutes), and `stopped_watching` fires when playback really ends. **Automations that turn the TV off should wait for `stopped_watching`, not act on `time_up` alone.** (Block and stop-now stop at once; those are actions, not events.)
+The integration fires a `tellybox_event` bus event for each state transition and offers device triggers in the automation editor. See [Events and device triggers](https://github.com/sandermvanvliet/ha-tellybox/blob/main/docs/events.md) for the event types, payload, YAML example and limits.
 
 ## Example automations
 
-For a spoken warning at five minutes left, an actionable time-adding notification, or to turn off the TV when time is up, use the **[Blueprints](#blueprints)** above.
-
-Block watching at 18:30 on school nights:
-
-```yaml
-triggers:
-  - trigger: time
-    at: "18:30:00"
-conditions:
-  - condition: time
-    weekday: [sun, mon, tue, wed, thu]
-actions:
-  - action: tellybox.block_today
-    target: { device_id: YOUR_TELLYBOX_DEVICE_ID }
-```
-
-Get a notification when downloads wait for approval (held playlist downloads; for new subscription uploads use the *Inbox ping* blueprint):
-
-```yaml
-triggers:
-  - trigger: numeric_state
-    entity_id: sensor.tellybox_downloads_awaiting_approval
-    above: 0
-actions:
-  - action: notify.mobile_app_parent_phone
-    data:
-      message: "{{ states('sensor.tellybox_downloads_awaiting_approval') }} downloads wait for approval in Tellybox."
-```
+Copy-paste automations (block on school nights, notifications for downloads and the inbox, and more) are in [Automations](https://github.com/sandermvanvliet/ha-tellybox/blob/main/docs/automations.md). For a spoken warning, an add-time notification or the TV off at time-up, use the [Blueprints](#blueprints).
 
 ## Repairs
 
-Home Assistant shows problems in *Settings → Repairs* when:
-- **The TV is unreachable** for longer than the warning threshold (default: 60 minutes). Appears once Tellybox can't reach its Chromecast for that duration. Check that the Chromecast is powered and on the network; it clears by itself when the TV is back online.
-- **A kid has no visible shows** (default: after 24 hours with zero shows). The kid app is empty until at least one show is assigned in Tellybox's admin pages.
-- **Subscriptions are failing** (7 days or longer). Channel subscriptions in the inbox stopped working; check them in Tellybox's admin pages. This appears as a Repairs entry in Home Assistant (it is not a notification Tellybox sends).
-- **The media disk is low on space** (default: below 5 GB free). Free up space or add storage in Tellybox.
+Home Assistant shows problems in *Settings → Repairs* when the TV is unreachable, a kid has no visible shows, subscriptions keep failing or the media disk is low on space. See [Repairs](https://github.com/sandermvanvliet/ha-tellybox/blob/main/docs/repairs.md).
 
-The TV and disk limits are options in the integration's configuration: **Minutes before a TV warning** (0 turns the TV warning off) and **Free disk space warning (GB)** (0 turns the disk warning off). All issues clear by themselves when the condition improves. **None of these can be fixed from Home Assistant** — they all need an action in Tellybox's admin pages.
+## Documentation
 
-The checks pause when the connection to Tellybox is down (entities show unavailable) and resume when it returns.
+- [Dashboards](https://github.com/sandermvanvliet/ha-tellybox/blob/main/docs/dashboards.md): a parent dashboard ([admin.yaml](https://github.com/sandermvanvliet/ha-tellybox/blob/main/docs/dashboards/admin.yaml)) and a read-only kid view ([kid-safe.yaml](https://github.com/sandermvanvliet/ha-tellybox/blob/main/docs/dashboards/kid-safe.yaml)).
+- [Automations](https://github.com/sandermvanvliet/ha-tellybox/blob/main/docs/automations.md): copy-paste YAML automations.
+- [Events and device triggers](https://github.com/sandermvanvliet/ha-tellybox/blob/main/docs/events.md)
+- [Repairs](https://github.com/sandermvanvliet/ha-tellybox/blob/main/docs/repairs.md)
+- [Entity reference](https://github.com/sandermvanvliet/ha-tellybox/blob/main/docs/entities.md): every entity, generated from the code.
+- [Safety](https://github.com/sandermvanvliet/ha-tellybox/blob/main/docs/safety.md): what a dashboard can and cannot protect.
 
 ## Safety
 
+- A dashboard is not a security boundary. Put the override buttons on a parent-only dashboard and read [Safety](https://github.com/sandermvanvliet/ha-tellybox/blob/main/docs/safety.md) for the layered protection.
 - **Hide Home Assistant's own Cast media player** for the Chromecast from dashboards that kids can reach. Tellybox only times and controls playback it started, so casting from Home Assistant directly isn't counted.
-- **Put the override buttons on a parent-only dashboard.** Home Assistant has no per-entity permissions for non-admin users.
-- **Give each integration its own token,** and use a read-only token for displays.
-- **Keep Tellybox on your LAN or Tailscale,** preferably behind HTTPS. Tokens travel only to your own Tellybox.
+- Give each integration its own token, use a read-only token for displays, and keep Tellybox on your LAN or Tailscale, preferably behind HTTPS.
 
 ## Development
 
