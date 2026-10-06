@@ -58,6 +58,11 @@ Running log for the Home Assistant integration. The plan is `docs/plan.md`; Tell
 - Tasks T1–T3 (constants and options, repairs logic and wiring, docs) built on branch `repairs-issues`.
 - Docs added to README (Repairs section explaining each issue, the grace periods, options and that they clear by themselves), CHANGELOG (user-visible feature), and this log.
 
+## Plan 5: Per-session entities for in-app playback (2026-10-06, in review)
+- One sensor per browser playing in the kid app: created when playback starts and removed 30 seconds after it ends, on the Tellybox device. State is loading/playing/paused/buffering; attributes include label, title, show_id, episode_id, kids, profile_ids, position_s, duration_s (title and positions not recorded in history); browser id never exposed.
+- Each kid's "Watching on" sensor now has `target` (tv or device) and `state` attributes.
+- Tasks S1–S5 (sessions helper, dynamic sensor with removal and sweep, strings and translations, attributes on watching_on, docs) built on branch `plan-5-session-entities` (PR pending).
+
 ## Next
 Phase 2 of the Home Assistant plan, when the owner wants it:
 - typed events on Tellybox's admin stream (F4), with HA bus events and device triggers;
