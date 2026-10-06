@@ -176,6 +176,18 @@
       }
     }
   },
+  "device_automation": {
+    "trigger_type": {
+      "time_up": "Time is up",
+      "last_five_minutes": "Last five minutes started",
+      "started_watching": "Started watching",
+      "stopped_watching": "Stopped watching",
+      "override_applied": "An override was applied",
+      "inbox_item_arrived": "A new inbox item arrived",
+      "tv_unreachable": "TV became unreachable",
+      "tv_reachable": "TV became reachable"
+    }
+  },
   "exceptions": {
     "forbidden": {
       "message": "This Tellybox token is read-only. Create a \"Read and control\" token to use parent controls."
