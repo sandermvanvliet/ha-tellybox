@@ -134,6 +134,15 @@
       },
       "watching_on": {
         "name": "Kijkt op"
+      },
+      "device_session": {
+        "name": "Kijkt op {label}",
+        "state": {
+          "loading": "Laden",
+          "playing": "Speelt af",
+          "paused": "Gepauzeerd",
+          "buffering": "Bufferen"
+        }
       }
     },
     "binary_sensor": {

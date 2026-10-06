@@ -134,6 +134,15 @@
       },
       "watching_on": {
         "name": "Watching on"
+      },
+      "device_session": {
+        "name": "Watching on {label}",
+        "state": {
+          "loading": "Loading",
+          "playing": "Playing",
+          "paused": "Paused",
+          "buffering": "Buffering"
+        }
       }
     },
     "binary_sensor": {
