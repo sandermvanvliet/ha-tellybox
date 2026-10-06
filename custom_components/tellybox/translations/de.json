@@ -176,6 +176,18 @@
       }
     }
   },
+  "device_automation": {
+    "trigger_type": {
+      "time_up": "Die Zeit ist abgelaufen",
+      "last_five_minutes": "Die letzten fünf Minuten haben begonnen",
+      "started_watching": "Hat angefangen zu schauen",
+      "stopped_watching": "Hat aufgehört zu schauen",
+      "override_applied": "Eine Ausnahme wurde angewendet",
+      "inbox_item_arrived": "Ein neuer Eintrag im Posteingang ist eingetroffen",
+      "tv_unreachable": "Der Fernseher ist nicht mehr erreichbar",
+      "tv_reachable": "Der Fernseher ist wieder erreichbar"
+    }
+  },
   "exceptions": {
     "forbidden": {
       "message": "Dieses Tellybox-Token darf nur lesen. Erstelle ein Token mit \"Lesen und steuern\", um die Elternknöpfe zu nutzen."

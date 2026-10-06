@@ -13,6 +13,7 @@ from typing import Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady, HomeAssistantError
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from pytellybox import (
@@ -26,7 +27,16 @@ from pytellybox import (
     TellyboxUnavailableError,
 )
 
-from .const import CONF_CONTROL, DOMAIN, RECONNECT_MAX_S, RECONNECT_MIN_S, UNAVAILABLE_AFTER_S
+from .const import (
+    CONF_CONTROL,
+    DOMAIN,
+    RECONNECT_MAX_S,
+    RECONNECT_MIN_S,
+    UNAVAILABLE_AFTER_S,
+    main_device_identifier,
+    profile_device_identifier,
+)
+from .events import EVENT_NAME, build_payload, diff_states
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -66,6 +76,8 @@ class TellyboxCoordinator(DataUpdateCoordinator[AdminState]):
         self._last_watchers: tuple[int, ...] = ()
         self._task: asyncio.Task[None] | None = None
         self._unavailable_timer: CALLBACK_TYPE | None = None
+        self._last_state: AdminState | None = None  # the baseline events are diffed against; survives reconnects
+        self._closing = False  # set by async_stop: no events while unloading
 
     @property
     def client(self) -> TellyboxClient:
@@ -96,6 +108,7 @@ class TellyboxCoordinator(DataUpdateCoordinator[AdminState]):
         except TellyboxError as err:
             raise ConfigEntryNotReady(f"Can't get Tellybox's state: {err}") from err
         self._remember(state)
+        self._last_state = state  # baseline: no events
         return state
 
     def _remember(self, state: AdminState) -> None:
@@ -108,6 +121,42 @@ class TellyboxCoordinator(DataUpdateCoordinator[AdminState]):
         self._cancel_unavailable_timer()
         self.last_update_success = True
         self.async_set_updated_data(state)
+        old, self._last_state = self._last_state, state
+        if old is not None and not self._closing:
+            self._fire_events(old, state)
+
+    def _find_device(self, registry: dr.DeviceRegistry, identifier: tuple[str, str]) -> dr.DeviceEntry | None:
+        # `async_get_device` is deprecated on recent Home Assistant (identifiers are per config entry now);
+        # fall back to it on versions that predate `async_get_device_by_identifier`.
+        by_identifier = getattr(registry, "async_get_device_by_identifier", None)
+        if by_identifier is not None:
+            return by_identifier(identifier, self.config_entry.entry_id)
+        return registry.async_get_device(identifiers={identifier})
+
+    def _fire_events(self, old: AdminState, new: AdminState) -> None:
+        """Fire a `tellybox_event` per transition from `old` to `new`; never raises."""
+        try:
+            registry = dr.async_get(self.hass)
+            names = {p.id: p.name for p in new.profiles}
+            for event in diff_states(old, new):
+                identifier = (
+                    main_device_identifier(self.instance_id)
+                    if event.profile_id is None
+                    else profile_device_identifier(self.instance_id, event.profile_id)
+                )
+                device = self._find_device(registry, identifier)
+                if device is None:
+                    _LOGGER.debug("Skipping %s event: device not registered yet", event.type)
+                    continue
+                payload = build_payload(
+                    event,
+                    instance_id=self.instance_id,
+                    device_id=device.id,
+                    profile_name=names.get(event.profile_id),
+                )
+                self.hass.bus.async_fire(EVENT_NAME, payload)
+        except Exception:  # noqa: BLE001 - a bad diff must never break the stream
+            _LOGGER.exception("Failed to derive Tellybox events")
 
     # -- event stream
 
@@ -120,6 +169,7 @@ class TellyboxCoordinator(DataUpdateCoordinator[AdminState]):
         )
 
     async def async_stop(self) -> None:
+        self._closing = True
         self._cancel_unavailable_timer()
         task, self._task = self._task, None
         if task is not None and not task.done():

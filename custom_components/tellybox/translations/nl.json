@@ -176,6 +176,18 @@
       }
     }
   },
+  "device_automation": {
+    "trigger_type": {
+      "time_up": "De tijd is op",
+      "last_five_minutes": "De laatste vijf minuten zijn ingegaan",
+      "started_watching": "Is begonnen met kijken",
+      "stopped_watching": "Is gestopt met kijken",
+      "override_applied": "Er is een uitzondering toegepast",
+      "inbox_item_arrived": "Er is een nieuw item in de inbox",
+      "tv_unreachable": "De tv is onbereikbaar geworden",
+      "tv_reachable": "De tv is weer bereikbaar"
+    }
+  },
   "exceptions": {
     "forbidden": {
       "message": "Dit Tellybox-token mag alleen lezen. Maak een token met \"Lezen en bedienen\" om de ouderknoppen te gebruiken."
