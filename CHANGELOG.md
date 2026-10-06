@@ -4,6 +4,8 @@ Release notes for the Tellybox integration. The workflow in `.github/workflows/r
 
 ## Unreleased
 
+## 0.4.0
+
 - Each kid's device has a Picture entity with the kid's photo or avatar (needs a Tellybox with the profile fields, HA-11).
 - Per-kid sensors for whether a kid may watch in the app and for the kid app style (needs a Tellybox with the profile fields, HA-11; older Tellybox shows them as unknown).
 - Documentation: dashboard examples for parents and a read-only kid view, an automations page, a generated entity reference, and a safety page; the README is now a shorter landing page.
@@ -13,6 +15,7 @@ Release notes for the Tellybox integration. The workflow in `.github/workflows/r
 - Diagnostics now redact the browser device ids, labels and keys of in-app sessions.
 - A sensor for every browser playing in the kid app ("Watching on <browser>"), and `target` and `state` attributes on each kid's "Watching on" sensor.
 - Repairs: Home Assistant now warns when Tellybox can't reach the TV for a while, when a kid has no shows to watch, when subscriptions keep failing, and when the media disk is low on space. Thresholds for the TV and the disk are in the integration's options.
+- Requires pytellybox 0.4.0 (installed automatically). The Picture entity's photo and the two new per-kid sensors need Tellybox 0.4.0; against an older Tellybox the sensors show unknown and the picture falls back to the kid's avatar. Everything else works with Tellybox 0.3.0.
 
 ## 0.3.0
 
