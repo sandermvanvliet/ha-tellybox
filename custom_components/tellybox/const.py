@@ -19,6 +19,18 @@ UNAVAILABLE_AFTER_S: Final = 60.0
 
 EXTRA_MINUTES_MAX: Final = 240
 
+# Repairs issues: options (minutes / GB; 0 turns the issue off), grace and hysteresis, issue ids.
+CONF_TV_UNREACHABLE_MINUTES: Final = "tv_unreachable_minutes"
+DEFAULT_TV_UNREACHABLE_MINUTES: Final = 60
+CONF_DISK_FREE_GB: Final = "disk_free_gb"
+DEFAULT_DISK_FREE_GB: Final = 5
+NO_VISIBLE_SHOWS_GRACE_S: Final = 86400  # a kid with no visible shows for 24 hours
+DISK_HYSTERESIS: Final = 1.1  # the disk issue clears at 1.1x the threshold
+ISSUE_TV_UNREACHABLE: Final = "tv_unreachable"
+ISSUE_NO_VISIBLE_SHOWS: Final = "no_visible_shows"
+ISSUE_SUBSCRIPTIONS_UNHEALTHY: Final = "subscriptions_unhealthy"
+ISSUE_DISK_LOW: Final = "disk_low"
+
 # Services (actions). Each takes a `device_id` list: the Tellybox device = everyone, a kid's device = that kid.
 SERVICE_ADD_TIME: Final = "add_time"  # + minutes (1..240)
 SERVICE_SET_UNLIMITED_TODAY: Final = "set_unlimited_today"

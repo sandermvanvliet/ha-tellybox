@@ -38,10 +38,14 @@
     "step": {
       "init": {
         "data": {
-          "control": "Elternknöpfe (Extrazeit, Sperren und Aktionen)"
+          "control": "Elternknöpfe (Extrazeit, Sperren und Aktionen)",
+          "tv_unreachable_minutes": "Minuten bis zur TV-Warnung",
+          "disk_free_gb": "Warnung bei freiem Speicherplatz (GB)"
         },
         "data_description": {
-          "control": "Schalte das aus bei einem Token, das nur lesen darf, zum Beispiel für eine Statusanzeige."
+          "control": "Schalte das aus bei einem Token, das nur lesen darf, zum Beispiel für eine Statusanzeige.",
+          "tv_unreachable_minutes": "Home Assistant zeigt eine Reparaturmeldung, wenn Tellybox den Fernseher so viele Minuten nicht erreicht. 0 schaltet das aus.",
+          "disk_free_gb": "Home Assistant zeigt eine Reparaturmeldung, wenn auf der Medienfestplatte weniger Platz frei ist als hier eingestellt. 0 schaltet das aus."
         }
       }
     }
@@ -221,6 +225,24 @@
     },
     "no_kids": {
       "message": "Keine Kinder zum Abspielen: Wähle das Gerät eines Kindes oder starte zuerst etwas in Tellybox."
+    }
+  },
+  "issues": {
+    "tv_unreachable": {
+      "title": "Tellybox erreicht den Fernseher nicht",
+      "description": "Tellybox erreicht seinen Fernseher seit {minutes} Minuten oder länger nicht, daher kann nichts abgespielt werden. Prüfe, ob der Chromecast eingeschaltet und im Netzwerk ist. Das verschwindet von selbst, sobald der Fernseher wieder erreichbar ist."
+    },
+    "no_visible_shows": {
+      "title": "{name} hat keine Sendungen zum Ansehen",
+      "description": "Für {name} ist keine Sendung sichtbar, deshalb ist die Kinder-App leer. Gib {name} in den Admin-Seiten von Tellybox Zugriff auf mindestens eine Sendung. Das verschwindet von selbst."
+    },
+    "subscriptions_unhealthy": {
+      "title": "Tellybox-Abonnements schlagen fehl",
+      "description": "{count} Kanalabonnement(s) schlagen seit 7 Tagen oder länger fehl. Prüfe sie in den Admin-Seiten von Tellybox. Das verschwindet von selbst, sobald sie wieder funktionieren."
+    },
+    "disk_low": {
+      "title": "Tellybox hat wenig Speicherplatz",
+      "description": "Auf der Medienfestplatte von Tellybox sind nur noch {free_gb} GB frei, weniger als dein Limit von {threshold_gb} GB. Schaffe Platz oder füge Speicher hinzu. Du kannst das Limit in den Optionen der Integration ändern. Das verschwindet von selbst."
     }
   },
   "services": {

@@ -38,10 +38,14 @@
     "step": {
       "init": {
         "data": {
-          "control": "Parent controls (override buttons and actions)"
+          "control": "Parent controls (override buttons and actions)",
+          "tv_unreachable_minutes": "Minutes before a TV warning",
+          "disk_free_gb": "Free disk space warning (GB)"
         },
         "data_description": {
-          "control": "Turn off for a read-only token, such as a status display."
+          "control": "Turn off for a read-only token, such as a status display.",
+          "tv_unreachable_minutes": "Home Assistant raises a Repairs warning when Tellybox can't reach the TV for this many minutes. 0 turns it off.",
+          "disk_free_gb": "Home Assistant raises a Repairs warning when the media disk has less free space than this. 0 turns it off."
         }
       }
     }
@@ -221,6 +225,24 @@
     },
     "no_kids": {
       "message": "No kids to play for: choose a kid's device, or start something in Tellybox first."
+    }
+  },
+  "issues": {
+    "tv_unreachable": {
+      "title": "Tellybox can't reach the TV",
+      "description": "Tellybox has not been able to reach its TV for {minutes} minutes or more, so nothing can be played on it. Check that the Chromecast is powered and on the network. This clears by itself when the TV is reachable again."
+    },
+    "no_visible_shows": {
+      "title": "{name} has no shows to watch",
+      "description": "No shows are visible to {name}, so the kid app is empty. In Tellybox's admin pages, give {name} access to at least one show. This clears by itself."
+    },
+    "subscriptions_unhealthy": {
+      "title": "Tellybox subscriptions are failing",
+      "description": "{count} channel subscription(s) have been failing for 7 days or more. Check them in Tellybox's admin pages. This clears by itself once they work again."
+    },
+    "disk_low": {
+      "title": "Tellybox is low on disk space",
+      "description": "Only {free_gb} GB is free on Tellybox's media disk, below your limit of {threshold_gb} GB. Free up space or add storage. You can change the limit in the integration's options. This clears by itself."
     }
   },
   "services": {
