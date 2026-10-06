@@ -5,6 +5,7 @@ Playing goes through the kid API, so a time-up refusal (409) is respected and ne
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
@@ -17,16 +18,19 @@ from homeassistant.components.media_player import (
     MediaType,
 )
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util import dt as dt_util
 
 from .coordinator import TellyboxConfigEntry, TellyboxCoordinator
-from .entity import TellyboxEntity
+from .entity import TellyboxEntity, TellyboxProfileEntity, add_profile_entities
 from .media_common import EPISODE, browse, play_for
+from .sessions import session_for_profile
 
 PARALLEL_UPDATES = 1
 
 PLAYER = MediaPlayerEntityDescription(key="player")
+
 
 class TellyboxMediaPlayer(TellyboxEntity, MediaPlayerEntity):
     """Named after the device (no entity name)."""
@@ -123,7 +127,116 @@ class TellyboxMediaPlayer(TellyboxEntity, MediaPlayerEntity):
         return await browse(self.coordinator.client, media_content_id, kids, "Tellybox")
 
 
+@dataclass(frozen=True)
+class _NowPlayingSession:
+    """A session-like view of `now_playing`, for a server that sends no `sessions`."""
+
+    episode_id: int
+    title: str
+    state: str
+    position_s: int | None
+    duration_s: int | None
+    show: str | None
+    target: str = "tv"
+    label: str = ""
+
+
+class TellyboxKidMediaPlayer(TellyboxProfileEntity, MediaPlayerEntity):
+    """One kid's player: what that kid watches, browse what that kid may see, play for that kid only.
+
+    No pause, play or stop: Tellybox's are household-wide, so they would act on other kids' playback too.
+    """
+
+    _attr_name = None
+    _attr_media_content_type = MediaType.EPISODE
+    _attr_media_image_remotely_accessible = False  # a LAN address; Home Assistant fetches and proxies it
+    _attr_supported_features = MediaPlayerEntityFeature.BROWSE_MEDIA | MediaPlayerEntityFeature.PLAY_MEDIA
+    _attr_media_position_updated_at: datetime | None = None
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self._attr_media_position_updated_at = dt_util.utcnow()
+        super()._handle_coordinator_update()
+
+    def _session(self) -> Any | None:
+        data = self.coordinator.data
+        if data is None:
+            return None
+        if (session := session_for_profile(data, self.profile_id)) is not None:
+            return session
+        playing = data.now_playing
+        if playing is not None and self.profile_id in playing.profile_ids:
+            return _NowPlayingSession(
+                playing.episode_id, playing.title, playing.state, playing.position_s, playing.duration_s, playing.show
+            )
+        return None
+
+    @property
+    def state(self) -> MediaPlayerState:
+        session = self._session()
+        in_app = session is not None and session.target == "device"
+        if not in_app and not self.coordinator.data.tv.reachable:
+            return MediaPlayerState.OFF
+        if session is None:
+            return MediaPlayerState.IDLE
+        if session.state == "paused":
+            return MediaPlayerState.PAUSED
+        return MediaPlayerState.PLAYING  # playing, buffering and loading
+
+    @property
+    def media_content_id(self) -> str | None:
+        session = self._session()
+        return f"{EPISODE}:{session.episode_id}" if session else None
+
+    @property
+    def media_title(self) -> str | None:
+        session = self._session()
+        return session.title if session else None
+
+    @property
+    def media_series_title(self) -> str | None:
+        session = self._session()
+        return getattr(session, "show", None) if session else None  # only `now_playing` knows the show title
+
+    @property
+    def media_duration(self) -> int | None:
+        session = self._session()
+        return session.duration_s if session else None
+
+    @property
+    def media_position(self) -> int | None:
+        session = self._session()
+        return session.position_s if session else None
+
+    @property
+    def media_image_url(self) -> str | None:
+        session = self._session()
+        return self.coordinator.client.url(f"/img/episode/{session.episode_id}.jpg") if session else None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        session = self._session()
+        return {"watching_on": session.label} if session and session.label else {}
+
+    async def async_play_media(self, media_type: str, media_id: str, **kwargs: Any) -> None:
+        # Always the TV, for this kid only; Tellybox refuses (409) when the kid is out of time.
+        await play_for(self.coordinator, media_id, [self.profile_id])
+
+    async def async_browse_media(
+        self, media_content_type: str | None = None, media_content_id: str | None = None
+    ) -> BrowseMedia:
+        profile = self.profile
+        title = profile.name if profile else f"Kid {self.profile_id}"
+        return await browse(self.coordinator.client, media_content_id, [self.profile_id], title)
+
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: TellyboxConfigEntry, async_add_entities: AddConfigEntryEntitiesCallback
 ) -> None:
-    async_add_entities([TellyboxMediaPlayer(entry.runtime_data.coordinator)])
+    coordinator = entry.runtime_data.coordinator
+    async_add_entities([TellyboxMediaPlayer(coordinator)])
+
+    def factory(profile_id: int) -> list[Entity]:
+        return [TellyboxKidMediaPlayer(coordinator, PLAYER, profile_id)]
+
+    entry.async_on_unload(add_profile_entities(coordinator, async_add_entities, factory))
