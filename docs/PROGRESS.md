@@ -43,6 +43,8 @@ Running log for the Home Assistant integration. The plan is `docs/plan.md`; Tell
 - pytellybox: the whole admin API and the kid state (sessions, inbox, allowance and session sources, visible shows, kid events), and a fix for an unlimited (null) allowance. The in-app player endpoints are left out on purpose (HA-8).
 - Integration: sensors for the inbox (HA-9), visible shows (HA-10), sessions, time-up reason, playback action, next reset and the sources, plus a *no visible shows* problem sensor. Needs pytellybox 0.2.0, so it can't merge before that release.
 
+- 2026-10-06: diagnostics redact `device_id` and `label` (browser ids and names of in-app sessions), with a test (S6).
+
 ## Next
 Phase 2 of the Home Assistant plan, when the owner wants it:
 - typed events on Tellybox's admin stream (F4), with HA bus events and device triggers;

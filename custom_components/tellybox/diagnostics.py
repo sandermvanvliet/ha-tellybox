@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant
 from .const import CONF_TOKEN, CONF_URL
 from .coordinator import TellyboxConfigEntry
 
-TO_REDACT = {CONF_TOKEN, CONF_URL, "url", "token", "instance_id", "device"}
+TO_REDACT = {CONF_TOKEN, CONF_URL, "url", "token", "instance_id", "device", "device_id", "label", "key"}  # a session key is "device:<device_id>"
 
 
 async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: TellyboxConfigEntry) -> dict[str, Any]:
