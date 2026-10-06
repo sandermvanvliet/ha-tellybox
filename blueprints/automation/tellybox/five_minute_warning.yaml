@@ -1,0 +1,43 @@
+blueprint:
+  name: Tellybox five-minute warning
+  description: >-
+    Runs your own actions when a Tellybox "last five minutes" sensor turns on, for
+    example a spoken warning, a light or a notification. Use the Tellybox device's
+    sensor for whoever is watching, or a kid's sensor for one kid. The variables
+    `kid` (the device name) and `kid_device_id` are available in your actions.
+  domain: automation
+  source_url: https://github.com/sandermvanvliet/ha-tellybox/blob/main/blueprints/automation/tellybox/five_minute_warning.yaml
+  homeassistant:
+    min_version: 2026.4.0
+  input:
+    last_five_sensor:
+      name: Last five minutes sensor
+      description: The Tellybox "Last five minutes" binary sensor to watch.
+      selector:
+        entity:
+          domain: binary_sensor
+          integration: tellybox
+    warning_actions:
+      name: Warning actions
+      description: >-
+        What to do when five minutes are left. You can use the variables
+        {{ kid }} (name of the device the sensor belongs to) and {{ kid_device_id }}.
+      default: []
+      selector:
+        action: {}
+
+mode: single
+max_exceeded: silent
+
+variables:
+  kid: >-
+    {% set d = device_id(trigger.entity_id) %}
+    {{ (device_attr(d, 'name_by_user') or device_attr(d, 'name') or '') if d else '' }}
+  kid_device_id: "{{ device_id(trigger.entity_id) }}"
+
+triggers:
+  - trigger: state
+    entity_id: !input last_five_sensor
+    to: "on"
+
+actions: !input warning_actions
