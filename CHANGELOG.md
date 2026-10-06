@@ -4,6 +4,8 @@ Release notes for the Tellybox integration. The workflow in `.github/workflows/r
 
 ## Unreleased
 
+- Diagnostics now redact the browser device ids, labels and keys of in-app sessions.
+
 ## 0.3.0
 
 - New sensors on the Tellybox device: inbox pending, subscriptions failing, latest inbox upload, active sessions, time up reason, playback action and next daily reset.
