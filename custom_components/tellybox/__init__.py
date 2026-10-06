@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta
+
 import voluptuous as vol
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall, callback
@@ -9,6 +11,7 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.typing import ConfigType
 from pytellybox import EXTRA_MINUTES_MAX, TellyboxClient  # noqa: F401  (tests patch TellyboxClient here)
 
@@ -27,6 +30,7 @@ from .const import (
     main_device_identifier,
 )
 from .coordinator import TellyboxConfigEntry, TellyboxCoordinator, TellyboxData
+from .repairs import TellyboxRepairs
 
 PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.MEDIA_PLAYER, Platform.SENSOR]
 
@@ -149,6 +153,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: TellyboxConfigEntry) -> 
     _remove_gone_kids()
     entry.async_on_unload(coordinator.async_add_listener(_remove_gone_kids))
     entry.async_on_unload(entry.add_update_listener(_options_updated))
+
+    repairs = TellyboxRepairs(hass, entry, coordinator)
+    entry.async_on_unload(coordinator.async_add_listener(repairs.async_evaluate))
+
+    @callback
+    def _evaluate_repairs(_now: datetime) -> None:
+        repairs.async_evaluate()
+
+    entry.async_on_unload(async_track_time_interval(hass, _evaluate_repairs, timedelta(minutes=1)))
+    entry.async_on_unload(repairs.async_clear)
+    repairs.async_evaluate()
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     await coordinator.async_start()
