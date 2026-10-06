@@ -72,6 +72,10 @@ Running log for the Home Assistant integration. The plan is `docs/plan.md`; Tell
 - Tasks T1–T5 (harness, reference blueprint, all five blueprints with tests) built in parallel; T6 (docs) built separately.
 - Docs added to README (new *Blueprints* section with table and import badges, replaced duplicate example automations with blueprint links), CHANGELOG (user-visible feature), and this log.
 
+## Docs, dashboards and entity reference (plan 8, 2026-10-06, in review)
+- Dashboard examples (`docs/dashboards.md`, `docs/dashboards/admin.yaml`, `docs/dashboards/kid-safe.yaml`), `docs/automations.md`, the generated `docs/entities.md` and a new `docs/safety.md`, with `tests/test_docs_examples.py` checking entities, actions, read-only kid view, links and privacy.
+- README is now a landing page: events moved to `docs/events.md` and Repairs to `docs/repairs.md` (content unchanged), example automations are in `docs/automations.md`, and a Documentation list links every page with absolute URLs.
+
 ## Next
 Phase 2 of the Home Assistant plan, when the owner wants it:
 - typed events on Tellybox's admin stream (F4), with HA bus events and device triggers;
