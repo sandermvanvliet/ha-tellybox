@@ -150,6 +150,15 @@
           "icons": "Pictures",
           "text": "Text"
         }
+      },
+      "time_used_yesterday": {
+        "name": "Time used yesterday"
+      },
+      "time_used_7d_average": {
+        "name": "Average time used (7 days)"
+      },
+      "last_watched": {
+        "name": "Last watched"
       }
     },
     "binary_sensor": {

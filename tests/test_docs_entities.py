@@ -6,12 +6,13 @@ import pytest
 
 from custom_components.tellybox.binary_sensor import BINARY_SENSORS, PROFILE_BINARY_SENSORS
 from custom_components.tellybox.button import BUTTONS, PROFILE_BUTTONS
-from custom_components.tellybox.sensor import PROFILE_SENSORS, SENSORS
+from custom_components.tellybox.sensor import HISTORY_SENSORS, PROFILE_SENSORS, SENSORS
 from scripts import gen_entity_docs as gen
 
 PLATFORM_TUPLES = [
     ("sensor", SENSORS),
     ("sensor", PROFILE_SENSORS),
+    ("sensor", HISTORY_SENSORS),
     ("binary_sensor", BINARY_SENSORS),
     ("binary_sensor", PROFILE_BINARY_SENSORS),
     ("button", BUTTONS),

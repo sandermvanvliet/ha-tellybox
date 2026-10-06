@@ -14,12 +14,13 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import EntityCategory, UnitOfInformation, UnitOfTime
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
-from pytellybox import AdminState, Profile
+from pytellybox import AdminState, Profile, ProfileUsage
 
 from .coordinator import TellyboxConfigEntry, TellyboxCoordinator
+from .history_coordinator import TellyboxHistoryCoordinator
 from .entity import TellyboxEntity, TellyboxProfileEntity, add_profile_entities
 from .session_sensor import async_setup_session_sensors
 from .sessions import session_for_profile
@@ -42,6 +43,14 @@ class TellyboxProfileSensorDescription(SensorEntityDescription):
     value_fn: Callable[[Profile], int | float | str | None] = lambda _p: None
     state_value_fn: Callable[[AdminState, Profile], int | float | str | None] | None = None  # needs the sessions
     attrs_fn: Callable[[AdminState, Profile], Mapping[str, Any]] | None = None
+
+
+@dataclass(frozen=True, kw_only=True)
+class TellyboxHistorySensorDescription(SensorEntityDescription):
+    """A history sensor on a kid's device (HA-12); the value comes from that kid's `ProfileUsage`, or None."""
+
+    value_fn: Callable[[ProfileUsage | None], int | float | datetime | None]
+    attrs_fn: Callable[[ProfileUsage | None], Mapping[str, Any]] | None = None
 
 
 def _duration(**kwargs: Any) -> dict[str, Any]:
@@ -244,6 +253,53 @@ PROFILE_SENSORS: tuple[TellyboxProfileSensorDescription, ...] = (
 )
 
 
+def _yesterday(usage: ProfileUsage | None) -> int | None:
+    """Index 0 is today, 1 is yesterday (the server's timer day); None when the list doesn't reach it."""
+    return usage.days[1].used_s if usage is not None and len(usage.days) > 1 else None
+
+
+def _average_7d(usage: ProfileUsage | None) -> int | None:
+    """The seven completed days before today, zeros included for days not returned, rounded to a second."""
+    if usage is None:
+        return None
+    return round(sum(d.used_s for d in usage.days[1:8]) / 7)
+
+
+def _last_watched(usage: ProfileUsage | None) -> datetime | None:
+    last = usage.last_watched if usage is not None else None
+    return (last.ended_at or last.started_at) if last is not None else None
+
+
+def _last_watched_attrs(usage: ProfileUsage | None) -> dict[str, Any]:
+    last = usage.last_watched if usage is not None else None
+    if last is None:
+        return {}
+    return {"episode_title": last.title, "show": last.show, "target": last.target}
+
+
+HISTORY_SENSORS: tuple[TellyboxHistorySensorDescription, ...] = (
+    TellyboxHistorySensorDescription(
+        key="time_used_yesterday",
+        translation_key="time_used_yesterday",
+        value_fn=_yesterday,
+        **_duration(state_class=SensorStateClass.MEASUREMENT),
+    ),
+    TellyboxHistorySensorDescription(
+        key="time_used_7d_average",
+        translation_key="time_used_7d_average",
+        value_fn=_average_7d,
+        **_duration(state_class=SensorStateClass.MEASUREMENT),
+    ),
+    TellyboxHistorySensorDescription(
+        key="last_watched",
+        translation_key="last_watched",
+        value_fn=_last_watched,
+        attrs_fn=_last_watched_attrs,
+        device_class=SensorDeviceClass.TIMESTAMP,
+    ),
+)
+
+
 class TellyboxSensor(TellyboxEntity, SensorEntity):
     entity_description: TellyboxSensorDescription
 
@@ -279,6 +335,47 @@ class TellyboxProfileSensor(TellyboxProfileEntity, SensorEntity):
         return fn(self.coordinator.data, profile)
 
 
+class TellyboxHistorySensor(TellyboxProfileEntity, SensorEntity):
+    """A kid's history sensor. Follows the main coordinator for the kid's availability and the history
+    coordinator for its data; it is available only while the last history update succeeded."""
+
+    entity_description: TellyboxHistorySensorDescription
+
+    def __init__(
+        self, coordinator: TellyboxCoordinator, history: TellyboxHistoryCoordinator,
+        description: TellyboxHistorySensorDescription, profile_id: int,
+    ) -> None:
+        super().__init__(coordinator, description, profile_id)
+        self._history = history
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self.async_on_remove(self._history.async_add_listener(self._handle_history_update))
+
+    @callback
+    def _handle_history_update(self) -> None:
+        self.async_write_ha_state()
+
+    @property
+    def usage(self) -> ProfileUsage | None:
+        """This kid's entry in the history, looked up by id (the list's order is not relied on)."""
+        data = self._history.data
+        return next((p for p in data.profiles if p.id == self.profile_id), None) if data else None
+
+    @property
+    def available(self) -> bool:
+        return super().available and self._history.last_update_success
+
+    @property
+    def native_value(self) -> int | float | datetime | None:
+        return self.entity_description.value_fn(self.usage)
+
+    @property
+    def extra_state_attributes(self) -> Mapping[str, Any] | None:
+        fn = self.entity_description.attrs_fn
+        return fn(self.usage) if fn else None
+
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: TellyboxConfigEntry, async_add_entities: AddConfigEntryEntitiesCallback
 ) -> None:
@@ -289,4 +386,11 @@ async def async_setup_entry(
         return [TellyboxProfileSensor(coordinator, d, profile_id) for d in PROFILE_SENSORS]
 
     entry.async_on_unload(add_profile_entities(coordinator, async_add_entities, factory))
+
+    history = entry.runtime_data.history
+    if history is not None:
+        def history_factory(profile_id: int) -> list[Entity]:
+            return [TellyboxHistorySensor(coordinator, history, d, profile_id) for d in HISTORY_SENSORS]
+
+        entry.async_on_unload(add_profile_entities(coordinator, async_add_entities, history_factory))
     await async_setup_session_sensors(hass, entry, coordinator, async_add_entities)

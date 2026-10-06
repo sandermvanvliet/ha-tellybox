@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
+import logging
+
 import voluptuous as vol
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall, callback
@@ -13,10 +15,11 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.typing import ConfigType
-from pytellybox import EXTRA_MINUTES_MAX, TellyboxClient  # noqa: F401  (tests patch TellyboxClient here)
+from pytellybox import EXTRA_MINUTES_MAX, TellyboxClient, TellyboxError  # noqa: F401  (tests patch TellyboxClient here)
 
 from .const import (
     ATTR_EPISODE_ID,
+    CAPABILITY_HISTORY,
     ATTR_MINUTES,
     CONF_TOKEN,
     CONF_URL,
@@ -30,7 +33,10 @@ from .const import (
     main_device_identifier,
 )
 from .coordinator import TellyboxConfigEntry, TellyboxCoordinator, TellyboxData
+from .history_coordinator import TellyboxHistoryCoordinator
 from .repairs import TellyboxRepairs
+
+_LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.IMAGE, Platform.MEDIA_PLAYER, Platform.SENSOR]
 
@@ -136,6 +142,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: TellyboxConfigEntry) -> 
     coordinator = TellyboxCoordinator(hass, entry, client)
     await coordinator.async_config_entry_first_refresh()
     entry.runtime_data = TellyboxData(client=client, coordinator=coordinator)
+    history = await _async_setup_history(hass, entry, client, coordinator)
+    entry.runtime_data.history = history
 
     @callback
     def _remove_gone_kids() -> None:
@@ -168,6 +176,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: TellyboxConfigEntry) -> 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     await coordinator.async_start()
     return True
+
+
+async def _async_setup_history(
+    hass: HomeAssistant, entry: TellyboxConfigEntry, client: TellyboxClient, coordinator: TellyboxCoordinator
+) -> TellyboxHistoryCoordinator | None:
+    """The history coordinator, only when Tellybox advertises the capability. History is optional: a failing
+    `info()` means no capability, and a failing first refresh never fails setup (the next poll retries)."""
+    try:
+        info = await client.info()
+    except (TellyboxError, OSError, TimeoutError) as err:
+        _LOGGER.debug("Can't read Tellybox's capabilities, skipping history: %s", err)
+        return None
+    if not info.supports(CAPABILITY_HISTORY):
+        return None
+    history = TellyboxHistoryCoordinator(hass, entry, client)
+    await history.async_refresh()
+    entry.async_on_unload(history.async_watch_rollover(coordinator))
+    return history
 
 
 async def _options_updated(hass: HomeAssistant, entry: TellyboxConfigEntry) -> None:
