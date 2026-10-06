@@ -53,6 +53,11 @@ Running log for the Home Assistant integration. The plan is `docs/plan.md`; Tell
 - Tasks T0–T3 (contract, `diff_states` implementation, coordinator hook, device triggers) built on branch `plan-1-events` (PR pending).
 - Docs added to README (event types table, payload keys, device-trigger usage, YAML example, limits on startup and semantics of `time_up`), CHANGELOG (user-visible feature), and this log.
 
+## Plan 3: Repairs issues (2026-10-06, in review)
+- Home Assistant warns in *Settings > Repairs* when Tellybox can't reach the TV, when a kid has no shows to watch, when subscriptions keep failing, and when the media disk is low on space. No pytellybox or Tellybox change needed.
+- Tasks T1–T3 (constants and options, repairs logic and wiring, docs) built on branch `repairs-issues`.
+- Docs added to README (Repairs section explaining each issue, the grace periods, options and that they clear by themselves), CHANGELOG (user-visible feature), and this log.
+
 ## Next
 Phase 2 of the Home Assistant plan, when the owner wants it:
 - typed events on Tellybox's admin stream (F4), with HA bus events and device triggers;

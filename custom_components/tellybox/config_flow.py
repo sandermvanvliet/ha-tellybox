@@ -17,7 +17,16 @@ from pytellybox import (
 )
 from yarl import URL
 
-from .const import CONF_CONTROL, CONF_TOKEN, CONF_URL, DOMAIN
+from .const import (
+    CONF_CONTROL,
+    CONF_DISK_FREE_GB,
+    CONF_TOKEN,
+    CONF_TV_UNREACHABLE_MINUTES,
+    CONF_URL,
+    DEFAULT_DISK_FREE_GB,
+    DEFAULT_TV_UNREACHABLE_MINUTES,
+    DOMAIN,
+)
 from .coordinator import TellyboxConfigEntry
 
 
@@ -115,7 +124,17 @@ class TellyboxOptionsFlow(OptionsFlow):
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         if user_input is not None:
             return self.async_create_entry(data=user_input)
-        current = self.config_entry.options.get(CONF_CONTROL, True)
+        options = self.config_entry.options
         return self.async_show_form(
-            step_id="init", data_schema=vol.Schema({vol.Required(CONF_CONTROL, default=current): bool})
+            step_id="init",
+            data_schema=vol.Schema({
+                vol.Required(CONF_CONTROL, default=options.get(CONF_CONTROL, True)): bool,
+                vol.Required(
+                    CONF_TV_UNREACHABLE_MINUTES,
+                    default=options.get(CONF_TV_UNREACHABLE_MINUTES, DEFAULT_TV_UNREACHABLE_MINUTES),
+                ): vol.All(vol.Coerce(int), vol.Range(min=0, max=1440)),
+                vol.Required(
+                    CONF_DISK_FREE_GB, default=options.get(CONF_DISK_FREE_GB, DEFAULT_DISK_FREE_GB)
+                ): vol.All(vol.Coerce(int), vol.Range(min=0, max=10000)),
+            }),
         )

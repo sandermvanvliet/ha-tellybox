@@ -3,11 +3,21 @@
 from __future__ import annotations
 
 import pytest
+import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResultType
 from pytellybox import TellyboxAuthError, TellyboxConnectionError, TellyboxError
 
-from custom_components.tellybox.const import CONF_CONTROL, CONF_TOKEN, CONF_URL, DOMAIN
+from custom_components.tellybox.const import (
+    CONF_CONTROL,
+    CONF_DISK_FREE_GB,
+    CONF_TOKEN,
+    CONF_TV_UNREACHABLE_MINUTES,
+    CONF_URL,
+    DEFAULT_DISK_FREE_GB,
+    DEFAULT_TV_UNREACHABLE_MINUTES,
+    DOMAIN,
+)
 
 from .conftest import INSTANCE_ID, TOKEN, URL
 from .helpers import core, no_platforms  # noqa: F401
@@ -101,9 +111,58 @@ async def test_reauth_invalid_token(hass, core, config_entry, fake_client):
     assert result["errors"] == {"base": "invalid_auth"}
 
 
-async def test_options_flow(hass, core, config_entry):
-    result = await hass.config_entries.options.async_init(config_entry.entry_id)
+async def _options_form(hass, entry):
+    result = await hass.config_entries.options.async_init(entry.entry_id)
     assert result["type"] is FlowResultType.FORM
-    result = await hass.config_entries.options.async_configure(result["flow_id"], {CONF_CONTROL: False})
+    return result
+
+
+def _defaults(result):
+    return {str(k): k.default() for k in result["data_schema"].schema}
+
+
+async def test_options_flow_defaults_and_save(hass, core, config_entry):
+    result = await _options_form(hass, config_entry)
+    # legacy entry with only {control: True}: the new options show their defaults
+    assert _defaults(result) == {
+        CONF_CONTROL: True,
+        CONF_TV_UNREACHABLE_MINUTES: DEFAULT_TV_UNREACHABLE_MINUTES,
+        CONF_DISK_FREE_GB: DEFAULT_DISK_FREE_GB,
+    }
+    assert (DEFAULT_TV_UNREACHABLE_MINUTES, DEFAULT_DISK_FREE_GB) == (60, 5)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {CONF_CONTROL: False, CONF_TV_UNREACHABLE_MINUTES: 15, CONF_DISK_FREE_GB: 20}
+    )
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert config_entry.options == {CONF_CONTROL: False}
+    assert config_entry.options == {CONF_CONTROL: False, CONF_TV_UNREACHABLE_MINUTES: 15, CONF_DISK_FREE_GB: 20}
+
+
+async def test_options_flow_shows_saved_values(hass, core, config_entry):
+    hass.config_entries.async_update_entry(
+        config_entry, options={CONF_CONTROL: True, CONF_TV_UNREACHABLE_MINUTES: 5, CONF_DISK_FREE_GB: 0}
+    )
+    result = await _options_form(hass, config_entry)
+    assert _defaults(result) == {CONF_CONTROL: True, CONF_TV_UNREACHABLE_MINUTES: 5, CONF_DISK_FREE_GB: 0}
+
+
+async def test_options_flow_accepts_boundaries(hass, core, config_entry):
+    result = await _options_form(hass, config_entry)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {CONF_CONTROL: True, CONF_TV_UNREACHABLE_MINUTES: 0, CONF_DISK_FREE_GB: 10000}
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert config_entry.options[CONF_TV_UNREACHABLE_MINUTES] == 0
+    assert config_entry.options[CONF_DISK_FREE_GB] == 10000
+
+
+@pytest.mark.parametrize(
+    "bad",
+    [{CONF_TV_UNREACHABLE_MINUTES: -1}, {CONF_TV_UNREACHABLE_MINUTES: 1441},
+     {CONF_DISK_FREE_GB: -1}, {CONF_DISK_FREE_GB: 10001}],
+)
+async def test_options_flow_rejects_out_of_range(hass, core, config_entry, bad):
+    result = await _options_form(hass, config_entry)
+    values = {CONF_CONTROL: True, CONF_TV_UNREACHABLE_MINUTES: 60, CONF_DISK_FREE_GB: 5} | bad
+    with pytest.raises(vol.Invalid):
+        await hass.config_entries.options.async_configure(result["flow_id"], values)
+    assert config_entry.options == {CONF_CONTROL: True}

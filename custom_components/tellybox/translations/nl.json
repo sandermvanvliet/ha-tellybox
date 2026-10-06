@@ -38,10 +38,14 @@
     "step": {
       "init": {
         "data": {
-          "control": "Ouderknoppen (extra tijd, blokkeren en acties)"
+          "control": "Ouderknoppen (extra tijd, blokkeren en acties)",
+          "tv_unreachable_minutes": "Minuten voor een tv-waarschuwing",
+          "disk_free_gb": "Waarschuwing voor vrije schijfruimte (GB)"
         },
         "data_description": {
-          "control": "Zet dit uit bij een token dat alleen mag lezen, zoals voor een statusscherm."
+          "control": "Zet dit uit bij een token dat alleen mag lezen, zoals voor een statusscherm.",
+          "tv_unreachable_minutes": "Home Assistant toont een melding bij Reparaties als Tellybox de tv zoveel minuten niet kan bereiken. 0 zet dit uit.",
+          "disk_free_gb": "Home Assistant toont een melding bij Reparaties als er minder vrije ruimte op de mediaschijf is dan dit. 0 zet dit uit."
         }
       }
     }
@@ -221,6 +225,24 @@
     },
     "no_kids": {
       "message": "Geen kinderen om voor af te spelen: kies het apparaat van een kind, of start eerst iets in Tellybox."
+    }
+  },
+  "issues": {
+    "tv_unreachable": {
+      "title": "Tellybox kan de tv niet bereiken",
+      "description": "Tellybox kan zijn tv al {minutes} minuten of langer niet bereiken, dus er kan niets op afgespeeld worden. Controleer of de Chromecast aanstaat en op het netwerk zit. Dit verdwijnt vanzelf als de tv weer bereikbaar is."
+    },
+    "no_visible_shows": {
+      "title": "{name} heeft geen programma's om te kijken",
+      "description": "Voor {name} is geen enkel programma zichtbaar, dus de kinder-app is leeg. Geef {name} in de beheerpagina's van Tellybox toegang tot minstens één programma. Dit verdwijnt vanzelf."
+    },
+    "subscriptions_unhealthy": {
+      "title": "Tellybox-abonnementen mislukken",
+      "description": "{count} kanaalabonnement(en) mislukken al 7 dagen of langer. Controleer ze in de beheerpagina's van Tellybox. Dit verdwijnt vanzelf zodra ze weer werken."
+    },
+    "disk_low": {
+      "title": "Tellybox heeft weinig schijfruimte",
+      "description": "Er is nog maar {free_gb} GB vrij op de mediaschijf van Tellybox, onder je grens van {threshold_gb} GB. Maak ruimte vrij of voeg opslag toe. Je kunt de grens aanpassen in de opties van de integratie. Dit verdwijnt vanzelf."
     }
   },
   "services": {
