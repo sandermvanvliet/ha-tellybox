@@ -4,6 +4,7 @@ Release notes for the Tellybox integration. The workflow in `.github/workflows/r
 
 ## Unreleased
 
+- Home Assistant events and device triggers for Tellybox: receive bus events (`tellybox_event`) and use device triggers for time up, last five minutes, started/stopped watching, override applied, inbox item arrived, TV reachable/unreachable.
 - Diagnostics now redact the browser device ids, labels and keys of in-app sessions.
 
 ## 0.3.0
