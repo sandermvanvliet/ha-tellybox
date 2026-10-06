@@ -1,0 +1,91 @@
+blueprint:
+  name: Tellybox inbox ping
+  description: >-
+    Sends a notification to a phone with the Home Assistant mobile app when a new upload arrives
+    in the Tellybox inbox and at least one upload is waiting for approval. Nothing is approved
+    or published by this blueprint; it only tells you to go and look. Optionally, tapping the
+    notification opens a web address you choose (for example the Tellybox admin inbox).
+  domain: automation
+  source_url: https://github.com/sandermvanvliet/ha-tellybox/blob/main/blueprints/automation/tellybox/inbox_ping.yaml
+  homeassistant:
+    min_version: 2026.4.0
+  input:
+    latest_received_sensor:
+      name: Latest received sensor
+      description: >-
+        The Tellybox "Inbox latest received" sensor. A new upload changes its value, which
+        starts the notification.
+      selector:
+        entity:
+          domain: sensor
+          integration: tellybox
+    pending_sensor:
+      name: Pending uploads sensor
+      description: >-
+        The Tellybox "Inbox pending" sensor. A notification is only sent when it is above zero.
+      selector:
+        entity:
+          domain: sensor
+          integration: tellybox
+    notify_device:
+      name: Phone to notify
+      description: The device running the Home Assistant mobile app that gets the notification.
+      selector:
+        device:
+          integration: mobile_app
+    message:
+      name: Notification message
+      description: Text of the notification. You can use {{ pending }} (the number of uploads waiting).
+      default: "{{ pending }} new Tellybox upload(s) waiting for approval."
+      selector:
+        text:
+          multiline: true
+    inbox_url:
+      name: Address to open
+      description: >-
+        Optional. A web address that opens when you tap the notification. Leave empty for none.
+      default: ""
+      selector:
+        text: {}
+
+mode: single
+max_exceeded: silent
+
+variables:
+  pending_sensor: !input pending_sensor
+  inbox_url: !input inbox_url
+  pending: "{{ states(pending_sensor) | float(0) | int }}"
+
+triggers:
+  - trigger: state
+    entity_id: !input latest_received_sensor
+    not_from:
+      - unavailable
+      - unknown
+    not_to:
+      - unavailable
+      - unknown
+
+conditions:
+  - condition: template
+    alias: Something is waiting for approval
+    value_template: "{{ pending > 0 }}"
+
+actions:
+  - if:
+      - condition: template
+        value_template: "{{ inbox_url | string | trim != '' }}"
+    then:
+      - alias: Notify with a link
+        device_id: !input notify_device
+        domain: mobile_app
+        type: notify
+        message: !input message
+        data:
+          clickAction: "{{ inbox_url }}"
+    else:
+      - alias: Notify
+        device_id: !input notify_device
+        domain: mobile_app
+        type: notify
+        message: !input message

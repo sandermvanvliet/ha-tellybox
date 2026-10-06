@@ -1,0 +1,69 @@
+blueprint:
+  name: Tellybox empty kid app alert
+  description: >-
+    Sends a notification to a phone with the Home Assistant mobile app when a kid's app has had no
+    visible shows for a while. A new kid starts with no shows on purpose, so the delay gives you time
+    to add some before you are told. Use a kid's "No visible shows" sensor.
+  domain: automation
+  source_url: https://github.com/sandermvanvliet/ha-tellybox/blob/main/blueprints/automation/tellybox/empty_kid_app_alert.yaml
+  homeassistant:
+    min_version: 2026.4.0
+  input:
+    no_visible_shows_sensor:
+      name: No visible shows sensor
+      description: The kid's Tellybox "No visible shows" binary sensor to watch.
+      selector:
+        entity:
+          domain: binary_sensor
+          integration: tellybox
+    for_minutes:
+      name: Wait before alerting
+      description: >-
+        How long the app must stay empty before you are told. 0 alerts immediately.
+      default: 60
+      selector:
+        number:
+          min: 0
+          max: 1440
+          step: 1
+          unit_of_measurement: min
+          mode: box
+    notify_device:
+      name: Phone to notify
+      description: The device running the Home Assistant mobile app that gets the notification.
+      selector:
+        device:
+          integration: mobile_app
+    message:
+      name: Notification message
+      description: Text of the notification. You can use {{ kid }} (name of the device the sensor belongs to).
+      default: "{{ kid }}'s Tellybox app has no visible shows."
+      selector:
+        text:
+          multiline: true
+
+mode: single
+max_exceeded: silent
+
+variables:
+  kid: >-
+    {% set d = device_id(trigger.entity_id) %}
+    {{ (device_attr(d, 'name_by_user') or device_attr(d, 'name') or '') if d else '' }}
+  kid_device_id: "{{ device_id(trigger.entity_id) }}"
+
+triggers:
+  - trigger: state
+    entity_id: !input no_visible_shows_sensor
+    to: "on"
+    for:
+      minutes: !input for_minutes
+    not_from:
+      - unavailable
+      - unknown
+
+actions:
+  - alias: Tell the parent
+    device_id: !input notify_device
+    domain: mobile_app
+    type: notify
+    message: !input message

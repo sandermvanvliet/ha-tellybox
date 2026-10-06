@@ -1,0 +1,92 @@
+blueprint:
+  name: Tellybox TV off at time up
+  description: >-
+    Turns the TV off after a Tellybox time allowance is used up, once playback has
+    stopped. "Time up" is not "playback stopped": the episode that is playing can run
+    to its end, so this waits until the Tellybox player is idle or off, checks that time
+    is still up (a parent may have added time meanwhile), waits a short grace period and
+    then turns the TV off. If the player is still playing when the wait timeout is
+    reached, nothing is done and the TV stays on. This never plays or casts anything.
+  domain: automation
+  source_url: https://github.com/sandermvanvliet/ha-tellybox/blob/main/blueprints/automation/tellybox/tv_off_at_time_up.yaml
+  homeassistant:
+    min_version: 2026.4.0
+  input:
+    time_up_sensor:
+      name: Time up sensor
+      description: >-
+        The Tellybox "Time up" binary sensor to watch. Prefer the one on the Tellybox
+        device itself, which follows whoever is watching right now.
+      selector:
+        entity:
+          domain: binary_sensor
+          integration: tellybox
+    tellybox_player:
+      name: Tellybox player
+      description: The Tellybox media player; the TV is only turned off once it is idle or off.
+      selector:
+        entity:
+          domain: media_player
+          integration: tellybox
+    tv:
+      name: TV
+      description: The media player entity of the TV to turn off.
+      selector:
+        entity:
+          domain: media_player
+    wait_timeout_minutes:
+      name: Wait for playback to stop (minutes)
+      description: >-
+        How long to wait for the Tellybox player to become idle. When it is still
+        playing after this time, the TV is left on.
+      default: 30
+      selector:
+        number:
+          min: 1
+          max: 240
+          unit_of_measurement: min
+          mode: box
+    grace_minutes:
+      name: Grace period (minutes)
+      description: Extra time between playback stopping and turning the TV off.
+      default: 2
+      selector:
+        number:
+          min: 0
+          max: 60
+          unit_of_measurement: min
+          mode: box
+
+mode: single
+max_exceeded: silent
+
+variables:
+  time_up_sensor: !input time_up_sensor
+  tellybox_player: !input tellybox_player
+  wait_seconds: !input wait_timeout_minutes
+  grace_seconds: !input grace_minutes
+
+triggers:
+  - trigger: state
+    entity_id: !input time_up_sensor
+    to: "on"
+    not_from:
+      - unavailable
+      - unknown
+
+actions:
+  - wait_template: "{{ states(tellybox_player) in ['idle', 'off'] }}"
+    timeout:
+      seconds: "{{ (wait_seconds | float(0) * 60) | int }}"
+    continue_on_timeout: true
+  - condition: template
+    value_template: "{{ wait.completed }}"
+  - condition: template
+    value_template: "{{ is_state(time_up_sensor, 'on') }}"
+  - delay:
+      seconds: "{{ (grace_seconds | float(0) * 60) | int }}"
+  - condition: template
+    value_template: "{{ is_state(time_up_sensor, 'on') }}"
+  - action: media_player.turn_off
+    target:
+      entity_id: !input tv

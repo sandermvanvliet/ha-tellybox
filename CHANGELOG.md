@@ -4,6 +4,7 @@ Release notes for the Tellybox integration. The workflow in `.github/workflows/r
 
 ## Unreleased
 
+- Blueprints to import: five-minute warning, TV off at time up, an actionable 'add time' phone notification, inbox ping and an empty-kid-app alert (English only).
 - Each kid's device has a media player: it shows what that kid is watching and plays an episode for that kid only. It has no pause or stop, because Tellybox's are household-wide. Tellybox still refuses when the kid is out of time.
 - Home Assistant events and device triggers for Tellybox: receive bus events (`tellybox_event`) and use device triggers for time up, last five minutes, started/stopped watching, override applied, inbox item arrived, TV reachable/unreachable.
 - Diagnostics now redact the browser device ids, labels and keys of in-app sessions.
