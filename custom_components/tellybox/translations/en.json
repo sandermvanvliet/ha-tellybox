@@ -197,6 +197,11 @@
       "stop_now": {
         "name": "Stop now"
       }
+    },
+    "image": {
+      "picture": {
+        "name": "Picture"
+      }
     }
   },
   "device_automation": {

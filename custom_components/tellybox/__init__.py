@@ -32,7 +32,7 @@ from .const import (
 from .coordinator import TellyboxConfigEntry, TellyboxCoordinator, TellyboxData
 from .repairs import TellyboxRepairs
 
-PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.MEDIA_PLAYER, Platform.SENSOR]
+PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.IMAGE, Platform.MEDIA_PLAYER, Platform.SENSOR]
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 

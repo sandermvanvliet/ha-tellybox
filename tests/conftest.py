@@ -19,6 +19,7 @@ import pytest
 from pytellybox import (
     AdminState,
     Home,
+    Image,
     Info,
     KidProfile,
     Show,
@@ -34,6 +35,8 @@ FIXTURES = Path(__file__).parent / "fixtures"
 URL = "http://tellybox.test"
 TOKEN = "tbx_" + "a" * 43
 INSTANCE_ID = "3f2a9c0e5b7d4e1f8a6b2c3d4e5f6a7b"
+TINY_JPEG = b"\xff\xd8\xff\xe0tiny-jpeg\xff\xd9"
+TINY_SVG = b'<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>'
 
 
 def state_dict() -> dict[str, Any]:
@@ -57,6 +60,9 @@ class FakeTellyboxClient:
         self.calls: list[tuple] = []
         self.queue: asyncio.Queue = asyncio.Queue()
         self.stream_opens = 0
+        self.images: dict[str, Image] = {}  # path -> what `image()` returns; unknown paths get a default
+        self.image_error: Exception | None = None  # `image()` raises this
+        self.image_paths: list[str] = []  # every path requested
 
     # -- helpers for tests
     def set_state(self, **changes: Any) -> None:
@@ -152,6 +158,14 @@ class FakeTellyboxClient:
         self.state_data["now_playing"] = None
         self.push()
         return self._state()
+
+    async def image(self, path: str) -> Image:
+        self.image_paths.append(path)
+        if self.image_error is not None:
+            raise self.image_error
+        if path in self.images:
+            return self.images[path]
+        return Image(TINY_SVG, "image/svg+xml") if path.endswith(".svg") else Image(TINY_JPEG, "image/jpeg")
 
     async def kid_profiles(self) -> list[KidProfile]:
         self.calls.append(("kid_profiles",))

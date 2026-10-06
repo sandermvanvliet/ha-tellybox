@@ -48,6 +48,7 @@ Entity ids follow the device name, so a renamed device or kid changes the prefix
 | `button.<kid>_block_today` | Block today |  |  |  | parent controls only; hidden by default |
 | `button.<kid>_clear_today_s_overrides` | Clear today's overrides |  |  |  | parent controls only; hidden by default |
 | `button.<kid>_unlimited_today` | Unlimited today |  |  |  | parent controls only; hidden by default |
+| `image.<kid>_picture` | Picture |  |  |  |  |
 | `media_player.<kid>` | (device name) |  |  |  |  |
 | `sensor.<kid>_allowance_source` | Allowance source | diagnostic | enum |  | values: inherit, custom, unlimited |
 | `sensor.<kid>_allowance_today` | Allowance today | diagnostic | duration | s |  |
