@@ -170,6 +170,10 @@ async def test_sessions_and_watching_on(hass, config_entry, fake_client):
     ]
     assert _state(hass, "watching_on", 1).state == "TV"
     assert _state(hass, "watching_on", 2).state == "unknown"
+    assert _state(hass, "watching_on", 1).attributes["target"] == "tv"
+    assert _state(hass, "watching_on", 1).attributes["state"] == "playing"
+    assert _state(hass, "watching_on", 2).attributes["target"] is None
+    assert _state(hass, "watching_on", 2).attributes["state"] is None
     fake_client.set_state(sessions=[
         {"key": "device:abc", "target": "device", "label": "iPhone Safari", "device_id": "abc", "episode_id": 5,
          "show_id": 2, "title": "Lost Ball", "state": "paused", "position_s": 10, "duration_s": 600,
@@ -179,6 +183,10 @@ async def test_sessions_and_watching_on(hass, config_entry, fake_client):
     assert _state(hass, "active_sessions").state == "1"
     assert _state(hass, "watching_on", 1).state == "unknown"
     assert _state(hass, "watching_on", 2).state == "iPhone Safari"
+    assert _state(hass, "watching_on", 2).attributes["target"] == "device"
+    assert _state(hass, "watching_on", 2).attributes["state"] == "paused"
+    assert _state(hass, "watching_on", 1).attributes["target"] is None
+    assert _state(hass, "watching_on", 1).attributes["state"] is None
     fake_client.set_state(sessions=[])
     await push_state(hass, fake_client)
     assert _state(hass, "active_sessions").state == "0"
