@@ -134,6 +134,15 @@
       },
       "watching_on": {
         "name": "Schaut auf"
+      },
+      "device_session": {
+        "name": "Schaut auf {label}",
+        "state": {
+          "loading": "Wird geladen",
+          "playing": "Wiedergabe",
+          "paused": "Pausiert",
+          "buffering": "Puffert"
+        }
       }
     },
     "binary_sensor": {

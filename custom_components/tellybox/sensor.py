@@ -21,6 +21,8 @@ from pytellybox import AdminState, Profile
 
 from .coordinator import TellyboxConfigEntry, TellyboxCoordinator
 from .entity import TellyboxEntity, TellyboxProfileEntity, add_profile_entities
+from .session_sensor import async_setup_session_sensors
+from .sessions import session_for_profile
 
 PARALLEL_UPDATES = 0
 
@@ -39,6 +41,7 @@ class TellyboxProfileSensorDescription(SensorEntityDescription):
 
     value_fn: Callable[[Profile], int | float | str | None] = lambda _p: None
     state_value_fn: Callable[[AdminState, Profile], int | float | str | None] | None = None  # needs the sessions
+    attrs_fn: Callable[[AdminState, Profile], Mapping[str, Any]] | None = None
 
 
 def _duration(**kwargs: Any) -> dict[str, Any]:
@@ -52,8 +55,13 @@ def _duration(**kwargs: Any) -> dict[str, Any]:
 
 def _watching_on(state: AdminState, profile: Profile) -> str | None:
     """Where this kid is watching: the TV's name or the browser label; None when not watching."""
-    session = next((x for x in state.sessions if profile.id in x.profile_ids), None)
+    session = session_for_profile(state, profile.id)
     return session.label if session else None
+
+
+def _watching_on_attrs(state: AdminState, profile: Profile) -> dict[str, Any]:
+    session = session_for_profile(state, profile.id)
+    return {"target": session.target if session else None, "state": session.state if session else None}
 
 
 def _sessions_attrs(state: AdminState) -> dict[str, Any]:
@@ -222,6 +230,7 @@ PROFILE_SENSORS: tuple[TellyboxProfileSensorDescription, ...] = (
         key="watching_on",
         translation_key="watching_on",
         state_value_fn=_watching_on,
+        attrs_fn=_watching_on_attrs,
     ),
 )
 
@@ -252,6 +261,14 @@ class TellyboxProfileSensor(TellyboxProfileEntity, SensorEntity):
             return description.state_value_fn(self.coordinator.data, profile)
         return description.value_fn(profile)
 
+    @property
+    def extra_state_attributes(self) -> Mapping[str, Any] | None:
+        fn = self.entity_description.attrs_fn
+        profile = self.profile
+        if fn is None or profile is None:
+            return None
+        return fn(self.coordinator.data, profile)
+
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: TellyboxConfigEntry, async_add_entities: AddConfigEntryEntitiesCallback
@@ -263,3 +280,4 @@ async def async_setup_entry(
         return [TellyboxProfileSensor(coordinator, d, profile_id) for d in PROFILE_SENSORS]
 
     entry.async_on_unload(add_profile_entities(coordinator, async_add_entities, factory))
+    await async_setup_session_sensors(hass, entry, coordinator, async_add_entities)

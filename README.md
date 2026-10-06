@@ -49,7 +49,8 @@ With a read-only token, turn off **Parent controls** in the integration's option
   - active sessions (the TV and in-app playback, listed in the attributes);
   - why time is up (allowance, session maximum or blocked) and what playback does next (continue, finish then stop, stop now);
   - the next daily reset (diagnostic);
-  - media disk use (diagnostic, disabled by default).
+  - media disk use (diagnostic, disabled by default);
+  - a sensor for each browser playing in the kid app (*Watching on <browser label>*): one sensor per browser, created when playback starts and removed 30 seconds after it ends, with state (loading, playing, paused or buffering), the browser label, episode title and position, the kids and their profile ids, and the episode id and show id. Title and position are not recorded in history. These sensors are created dynamically and are not listed in `docs/entities.md`.
 - **Binary sensors:** time up, last five minutes, TV reachable.
 - **Buttons for everyone:** stop now, add 15 or 30 minutes, unlimited today, block today, clear today's overrides.
 
@@ -61,7 +62,7 @@ With a read-only token, turn off **Parent controls** in the integration's option
   - session time;
   - maximum session, and where the allowance and the maximum session come from (default, custom or unlimited; diagnostic);
   - visible shows (how many shows the kid can see);
-  - watching on (the TV's name, or the browser the kid watches on).
+  - watching on (the TV's name, or the browser the kid watches on), with `target` (tv or device) and `state` attributes.
 - **Binary sensors:** watching, time up, last five minutes, blocked today, unlimited today, and *no visible shows* (a problem sensor for a kid whose app is empty).
 - **Buttons for that kid:** add 15 or 30 minutes, unlimited today, block today, clear today's overrides.
 
