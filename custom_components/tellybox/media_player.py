@@ -10,39 +10,23 @@ from typing import Any
 
 from homeassistant.components.media_player import (
     BrowseMedia,
-    MediaClass,
     MediaPlayerEntity,
     MediaPlayerEntityDescription,
     MediaPlayerEntityFeature,
     MediaPlayerState,
     MediaType,
 )
-from homeassistant.components.media_player.errors import BrowseError
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN
 from .coordinator import TellyboxConfigEntry, TellyboxCoordinator
 from .entity import TellyboxEntity
+from .media_common import EPISODE, browse, play_for
 
 PARALLEL_UPDATES = 1
 
 PLAYER = MediaPlayerEntityDescription(key="player")
-
-SHOW = "show"
-EPISODE = "episode"
-
-
-def _parse(media_id: str) -> tuple[str, int]:
-    """`show:2` or `episode:4` (a bare number is an episode id)."""
-    kind, _, number = media_id.rpartition(":")
-    try:
-        return kind or EPISODE, int(number)
-    except ValueError as err:
-        raise BrowseError(f"Unknown media id: {media_id}") from err
-
 
 class TellyboxMediaPlayer(TellyboxEntity, MediaPlayerEntity):
     """Named after the device (no entity name)."""
@@ -128,69 +112,15 @@ class TellyboxMediaPlayer(TellyboxEntity, MediaPlayerEntity):
         await self.coordinator.async_command(self.coordinator.client.stop_now)
 
     async def async_play_media(self, media_type: str, media_id: str, **kwargs: Any) -> None:
-        kind, number = _parse(media_id)
-        if kind != EPISODE:
-            raise HomeAssistantError(translation_domain=DOMAIN, translation_key="request",
-                                     translation_placeholders={"detail": "choose an episode, not a show"})
         coordinator = self.coordinator
         kids = list(coordinator.last_watchers) or [p.id for p in coordinator.data.profiles]
-        if not kids:
-            raise HomeAssistantError(translation_domain=DOMAIN, translation_key="no_kids")
-        await coordinator.async_command(lambda: coordinator.client.play(number, kids))
+        await play_for(coordinator, media_id, kids)
 
     async def async_browse_media(
         self, media_content_type: str | None = None, media_content_id: str | None = None
     ) -> BrowseMedia:
-        client = self.coordinator.client
         kids = list(self.coordinator.last_watchers) or None
-        if media_content_id and media_content_id.startswith(f"{SHOW}:"):
-            _, show_id = _parse(media_content_id)
-            show = await client.show(show_id, kids)
-            return BrowseMedia(
-                media_class=MediaClass.TV_SHOW,
-                media_content_id=f"{SHOW}:{show.show_id}",
-                media_content_type=MediaType.TVSHOW,
-                title=show.title,
-                can_play=False,
-                can_expand=True,
-                thumbnail=client.url(show.artwork),
-                children=[_episode(client.url, t) for t in show.episodes],
-            )
-        home = await client.home(kids)
-        children = [_episode(client.url, t) for t in home.continue_watching]
-        children += [
-            BrowseMedia(
-                media_class=MediaClass.TV_SHOW,
-                media_content_id=f"{SHOW}:{s.show_id}",
-                media_content_type=MediaType.TVSHOW,
-                title=s.title,
-                can_play=False,
-                can_expand=True,
-                thumbnail=client.url(s.artwork),
-            )
-            for s in home.shows
-        ]
-        return BrowseMedia(
-            media_class=MediaClass.DIRECTORY,
-            media_content_id="",
-            media_content_type="library",
-            title="Tellybox",
-            can_play=False,
-            can_expand=True,
-            children=children,
-        )
-
-
-def _episode(url: Any, tile: Any) -> BrowseMedia:
-    return BrowseMedia(
-        media_class=MediaClass.EPISODE,
-        media_content_id=f"{EPISODE}:{tile.episode_id}",
-        media_content_type=MediaType.EPISODE,
-        title=tile.title or f"Episode {tile.episode_id}",
-        can_play=True,
-        can_expand=False,
-        thumbnail=url(tile.thumb),
-    )
+        return await browse(self.coordinator.client, media_content_id, kids, "Tellybox")
 
 
 async def async_setup_entry(
