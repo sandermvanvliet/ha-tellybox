@@ -18,6 +18,7 @@ from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from pytellybox import (
     AdminState,
+    ServerEvent,
     TellyboxAuthError,
     TellyboxClient,
     TellyboxConnectionError,
@@ -28,6 +29,7 @@ from pytellybox import (
 )
 
 from .const import (
+    CAPABILITY_TYPED_EVENTS,
     CONF_CONTROL,
     DOMAIN,
     RECONNECT_MAX_S,
@@ -36,7 +38,15 @@ from .const import (
     main_device_identifier,
     profile_device_identifier,
 )
-from .events import EVENT_NAME, build_payload, diff_states
+from .events import (
+    EVENT_NAME,
+    EVENT_TV_REACHABLE,
+    EVENT_TV_UNREACHABLE,
+    TellyboxEvent,
+    build_payload,
+    diff_states,
+    from_server_event,
+)
 
 if TYPE_CHECKING:
     from .history_coordinator import TellyboxHistoryCoordinator
@@ -82,6 +92,10 @@ class TellyboxCoordinator(DataUpdateCoordinator[AdminState]):
         self._unavailable_timer: CALLBACK_TYPE | None = None
         self._last_state: AdminState | None = None  # the baseline events are diffed against; survives reconnects
         self._closing = False  # set by async_stop: no events while unloading
+        # Per connection (set in `_run_stream`): True when Tellybox sends typed events. Then the state diff only
+        # derives the TV reachability events (the typed catalog has none); everything else comes from the server,
+        # so no event fires twice. False (older Tellybox): the diff derives every event, as before.
+        self._typed = False
 
     @property
     def client(self) -> TellyboxClient:
@@ -138,29 +152,51 @@ class TellyboxCoordinator(DataUpdateCoordinator[AdminState]):
         return registry.async_get_device(identifiers={identifier})
 
     def _fire_events(self, old: AdminState, new: AdminState) -> None:
-        """Fire a `tellybox_event` per transition from `old` to `new`; never raises."""
+        """Fire a `tellybox_event` per transition from `old` to `new`; never raises. In typed mode only the TV
+        reachability transitions are fired: the server sends the rest."""
         try:
-            registry = dr.async_get(self.hass)
-            names = {p.id: p.name for p in new.profiles}
-            for event in diff_states(old, new):
-                identifier = (
-                    main_device_identifier(self.instance_id)
-                    if event.profile_id is None
-                    else profile_device_identifier(self.instance_id, event.profile_id)
-                )
-                device = self._find_device(registry, identifier)
-                if device is None:
-                    _LOGGER.debug("Skipping %s event: device not registered yet", event.type)
-                    continue
-                payload = build_payload(
-                    event,
-                    instance_id=self.instance_id,
-                    device_id=device.id,
-                    profile_name=names.get(event.profile_id),
-                )
-                self.hass.bus.async_fire(EVENT_NAME, payload)
+            events = diff_states(old, new)
+            if self._typed:
+                events = [e for e in events if e.type in (EVENT_TV_UNREACHABLE, EVENT_TV_REACHABLE)]
+            self._fire(events, {p.id: p.name for p in new.profiles})
         except Exception:  # noqa: BLE001 - a bad diff must never break the stream
             _LOGGER.exception("Failed to derive Tellybox events")
+
+    @callback
+    def _handle_server_event(self, event: ServerEvent) -> None:
+        """Fire the bus events for one typed server event; never raises."""
+        if self._closing:
+            return
+        try:
+            state = self._last_state if self._last_state is not None else self.data
+            names = {p.id: p.name for p in state.profiles} if state is not None else {}
+            self._fire(from_server_event(event), names)
+        except Exception:  # noqa: BLE001 - a bad event must never break the stream
+            _LOGGER.exception("Failed to handle Tellybox event")
+
+    def _fire(self, events: list[TellyboxEvent], names: dict[int, str]) -> None:
+        """Resolve each event's device and fire it on the bus. A kid unknown to the registry is skipped."""
+        registry = dr.async_get(self.hass)
+        for event in events:
+            if event.profile_id is not None and event.profile_id not in names:
+                _LOGGER.debug("Skipping %s event: unknown kid", event.type)
+                continue
+            identifier = (
+                main_device_identifier(self.instance_id)
+                if event.profile_id is None
+                else profile_device_identifier(self.instance_id, event.profile_id)
+            )
+            device = self._find_device(registry, identifier)
+            if device is None:
+                _LOGGER.debug("Skipping %s event: device not registered yet", event.type)
+                continue
+            payload = build_payload(
+                event,
+                instance_id=self.instance_id,
+                device_id=device.id,
+                profile_name=names.get(event.profile_id),
+            )
+            self.hass.bus.async_fire(EVENT_NAME, payload)
 
     # -- event stream
 
@@ -196,9 +232,15 @@ class TellyboxCoordinator(DataUpdateCoordinator[AdminState]):
         backoff = RECONNECT_MIN_S
         while True:
             try:
-                async for state in self._client.events():
+                # Read the capabilities before every connect, so a Tellybox upgrade is picked up on reconnect.
+                self._typed = await self._typed_events_supported()
+                source = self._client.stream(typed=True) if self._typed else self._client.events()
+                async for item in source:
                     backoff = RECONNECT_MIN_S
-                    self._apply(state)
+                    if isinstance(item, ServerEvent):
+                        self._handle_server_event(item)
+                    else:
+                        self._apply(item)
                 _LOGGER.debug("Tellybox event stream ended")
             except TellyboxAuthError:
                 self._start_reauth()
@@ -209,6 +251,17 @@ class TellyboxCoordinator(DataUpdateCoordinator[AdminState]):
                 self._unavailable_timer = async_call_later(self.hass, UNAVAILABLE_AFTER_S, self._mark_unavailable)
             await asyncio.sleep(backoff)
             backoff = min(backoff * 2, RECONNECT_MAX_S)
+
+    async def _typed_events_supported(self) -> bool:
+        """Does Tellybox advertise typed events? A failing `info()` counts as no (a 401 still raises)."""
+        try:
+            info = await self._client.info()
+        except TellyboxAuthError:
+            raise
+        except (TellyboxError, OSError, TimeoutError) as err:
+            _LOGGER.debug("Can't read Tellybox's capabilities, using state-derived events: %s", err)
+            return False
+        return bool(info.supports(CAPABILITY_TYPED_EVENTS))
 
     def _start_reauth(self) -> None:
         self._cancel_unavailable_timer()

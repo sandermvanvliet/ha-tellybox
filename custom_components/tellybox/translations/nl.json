@@ -222,7 +222,8 @@
       "override_applied": "Er is een uitzondering toegepast",
       "inbox_item_arrived": "Er is een nieuw item in de inbox",
       "tv_unreachable": "De tv is onbereikbaar geworden",
-      "tv_reachable": "De tv is weer bereikbaar"
+      "tv_reachable": "De tv is weer bereikbaar",
+      "download_ready": "Er staat een download klaar voor goedkeuring"
     }
   },
   "exceptions": {

@@ -222,7 +222,8 @@
       "override_applied": "Eine Ausnahme wurde angewendet",
       "inbox_item_arrived": "Ein neuer Eintrag im Posteingang ist eingetroffen",
       "tv_unreachable": "Der Fernseher ist nicht mehr erreichbar",
-      "tv_reachable": "Der Fernseher ist wieder erreichbar"
+      "tv_reachable": "Der Fernseher ist wieder erreichbar",
+      "download_ready": "Ein Download wartet auf Freigabe"
     }
   },
   "exceptions": {

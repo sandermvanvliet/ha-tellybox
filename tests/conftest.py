@@ -23,6 +23,7 @@ from pytellybox import (
     Image,
     Info,
     KidProfile,
+    ServerEvent,
     Show,
     TellyboxConnectionError,
     TellyboxForbiddenError,
@@ -82,9 +83,11 @@ class FakeTellyboxClient:
         self.state_data = state_dict()
         self.read_only = False  # overrides raise TellyboxForbiddenError
         self.fail_with: Exception | None = None  # every call raises this (e.g. TellyboxAuthError())
+        self.stream_fail_with: Exception | None = None  # only opening an event stream raises this (info() is unauthenticated)
         self.calls: list[tuple] = []
         self.queue: asyncio.Queue = asyncio.Queue()
         self.stream_opens = 0
+        self.stream_modes: list[bool] = []  # per open: True for `stream(typed=True)`, False for `events()`/`stream()`
         self.images: dict[str, Image] = {}  # path -> what `image()` returns; unknown paths get a default
         self.image_error: Exception | None = None  # `image()` raises this
         self.image_paths: list[str] = []  # every path requested
@@ -104,6 +107,10 @@ class FakeTellyboxClient:
 
     def push(self) -> None:
         self.queue.put_nowait(copy.deepcopy(self.state_data))
+
+    def push_event(self, type: str, profile_ids: Sequence[int] = (), **data: Any) -> None:
+        """Push a typed ServerEvent onto the stream (only `stream(typed=True)` yields it)."""
+        self.queue.put_nowait(ServerEvent.from_dict({"type": type, "profile_ids": list(profile_ids), **data}))
 
     def break_stream(self) -> None:
         self.queue.put_nowait(StreamBroken())
@@ -146,13 +153,29 @@ class FakeTellyboxClient:
         return self._state()
 
     async def events(self) -> AsyncIterator[AdminState]:
+        async for item in self._stream(typed=False):
+            yield item
+
+    async def stream(self, *, typed: bool = False) -> AsyncIterator[AdminState | ServerEvent]:
+        async for item in self._stream(typed=typed):
+            yield item
+
+    async def _stream(self, *, typed: bool) -> AsyncIterator[AdminState | ServerEvent]:
+        """One scripted source for `events()` and `stream()`; typed events reach only a typed stream."""
         self.stream_opens += 1
+        self.stream_modes.append(typed)
         self._check()
+        if self.stream_fail_with is not None:
+            raise self.stream_fail_with
         yield self._state()
         while True:
             item = await self.queue.get()
             if isinstance(item, BaseException):
                 raise TellyboxConnectionError("stream broken") from item
+            if isinstance(item, ServerEvent):
+                if typed:
+                    yield item
+                continue
             yield AdminState.from_dict(item)
 
     def _targets(self, profile_ids: Sequence[int] | None) -> list[dict]:

@@ -222,7 +222,8 @@
       "override_applied": "An override was applied",
       "inbox_item_arrived": "A new inbox item arrived",
       "tv_unreachable": "TV became unreachable",
-      "tv_reachable": "TV became reachable"
+      "tv_reachable": "TV became reachable",
+      "download_ready": "A download is ready for approval"
     }
   },
   "exceptions": {

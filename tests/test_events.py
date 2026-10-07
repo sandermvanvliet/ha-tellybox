@@ -22,6 +22,13 @@ def test_event_type_lists_are_disjoint() -> None:
     assert not set(PROFILE_EVENT_TYPES) & set(SERVER_EVENT_TYPES)
 
 
+def test_download_ready_is_a_server_event_type() -> None:
+    from custom_components.tellybox.events import EVENT_DOWNLOAD_READY
+
+    assert EVENT_DOWNLOAD_READY == "download_ready"
+    assert EVENT_DOWNLOAD_READY in SERVER_EVENT_TYPES and EVENT_DOWNLOAD_READY not in PROFILE_EVENT_TYPES
+
+
 def test_build_payload_profile_event() -> None:
     event = TellyboxEvent("override_applied", 2, {"override": "extra_time", "minutes": 15, "type": "clash"})
     assert build_payload(event, instance_id="iid", device_id="dev", profile_name="Mila") == {

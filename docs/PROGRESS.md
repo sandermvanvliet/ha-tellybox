@@ -82,6 +82,9 @@ Running log for the Home Assistant integration. The plan is `docs/plan.md`; Tell
 ## Viewing history in Home Assistant (plan 12, HA-12), in progress (2026-10-06)
 - A history coordinator (polled every 30 minutes and refreshed when the timer day rolls over) and three per-kid sensors: time used yesterday, the 7-day average and last watched (timestamp, with episode title, show and target as attributes). Created only when Tellybox's `/api/info` lists the `history` capability; a failing `info()` or history fetch never fails setup. No backfill of long-term statistics. Waits for pytellybox 0.5.0 (the `manifest.json` pin is unchanged).
 
+## Typed events in Home Assistant (plan 13, HA-13), in progress (2026-10-06)
+- The coordinator reads `info()` before every connect: with the `typed_events` capability it uses `client.stream(typed=True)` and maps each `ServerEvent` (`events.from_server_event`, one bus event per kid, unknown types passed through as server-level events) through the same device lookup and payload builder as the diff; otherwise it uses `client.events()` and the diff as before. In typed mode the diff only fires `tv_unreachable`/`tv_reachable`, so nothing fires twice. New optional payload keys (`reason`, `source`, `position_s`, episode keys, `new_items`) and a new `download_ready` event and device trigger (strings in en/nl/de, `docs/events.md` updated). Tests: `tests/test_typed_events.py` incl. a parity test. The `manifest.json` pin waits for pytellybox 0.6.0.
+
 ## Next
 Phase 2 of the Home Assistant plan, when the owner wants it:
 - typed events on Tellybox's admin stream (F4), with HA bus events and device triggers;

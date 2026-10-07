@@ -80,7 +80,7 @@ Five ready-to-import automation blueprints cover common parent automations, so y
 
 ## Events and automations
 
-The integration fires a `tellybox_event` bus event for each state transition and offers device triggers in the automation editor. See [Events and device triggers](https://github.com/sandermvanvliet/ha-tellybox/blob/main/docs/events.md) for the event types, payload, YAML example and limits.
+The integration fires a `tellybox_event` bus event for each Tellybox event (typed events from a recent Tellybox, else derived from state changes) and offers device triggers in the automation editor. See [Events and device triggers](https://github.com/sandermvanvliet/ha-tellybox/blob/main/docs/events.md) for the event types, payload, YAML example and limits.
 
 ## Example automations
 
