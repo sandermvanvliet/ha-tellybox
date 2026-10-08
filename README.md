@@ -1,4 +1,6 @@
-# Tellybox for Home Assistant
+![Tellybox](https://raw.githubusercontent.com/sandermvanvliet/Tellybox/main/docs/images/brand/logo.svg)
+
+# for Home Assistant
 
 A Home Assistant integration for [Tellybox](https://github.com/sandermvanvliet/Tellybox), the self-hosted app that lets young kids pick parent-approved videos for the TV within a daily time allowance.
 
