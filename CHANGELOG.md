@@ -4,7 +4,10 @@ Release notes for the Tellybox integration. The workflow in `.github/workflows/r
 
 ## Unreleased
 
+## 0.6.0
+
 - Events now use Tellybox's typed events when it has them: `stopped_watching` says why playback ended, `override_applied` says who applied the override, and there is a new `download_ready` event and device trigger. Older Tellybox versions keep working: the integration derives events from state changes as before (needs pytellybox 0.6.0 and, for typed events, Tellybox 0.6.0).
+- Requires pytellybox 0.6.0 (installed automatically). Typed events need Tellybox 0.6.0; against an older Tellybox the integration derives events from state changes as before. Everything else works as in 0.5.0.
 
 ## 0.5.0
 
